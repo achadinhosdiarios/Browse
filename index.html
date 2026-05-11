@@ -41,7 +41,51 @@
       --spring:      cubic-bezier(.16,1,.3,1);
     }
 
+    /* ── DARK THEME ── */
+    [data-theme="dark"] {
+      --bg:          #1A110E;
+      --surface:     #241710;
+      --surface-2:   #2E1E16;
+      --text:        #F5EDE8;
+      --text-mid:    #C4A090;
+      --text-muted:  #8A6A5C;
+      --accent:      #FF7A45;
+      --accent-2:    #FF9A60;
+      --accent-light:#3A1E12;
+      --border:      #3D2519;
+      --shadow-sm:   0 2px 12px rgba(0,0,0,.25);
+      --shadow-md:   0 8px 28px rgba(0,0,0,.35);
+      --shadow-lg:   0 20px 50px rgba(0,0,0,.45);
+      --shadow-acc:  0 10px 30px rgba(255,107,53,.35);
+    }
+    [data-theme="dark"] .site-header {
+      background: rgba(26,17,14,.9);
+      border-bottom-color: rgba(61,37,25,.8);
+    }
+    [data-theme="dark"] .search-bar {
+      background: rgba(26,17,14,.92);
+      border-bottom-color: rgba(61,37,25,.6);
+    }
+    [data-theme="dark"] .filter-sticky {
+      background: linear-gradient(to bottom, var(--bg) 70%, transparent 100%);
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(180,80,30,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(255,100,40,.07) 0%, transparent 55%);
+    }
+    [data-theme="dark"] .modal-close { background: rgba(36,23,16,.9); }
+
     html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    /* smooth color transition on theme change */
+    *, *::before, *::after {
+      transition-property: background-color, border-color, color, box-shadow;
+      transition-duration: .3s;
+      transition-timing-function: var(--easing);
+    }
+    /* but keep transform/opacity transitions unaffected for animations */
+    img, svg { transition: none; }
 
     body {
       font-family: 'DM Sans', sans-serif;
@@ -135,40 +179,88 @@
     }
     .logo-text em { color: var(--accent); font-style: normal; }
 
-    /* Search */
-    .search-wrap {
-      flex: 1;
-      max-width: 420px;
-      position: relative;
+    /* ── SEARCH BAR (sticky below header) ── */
+    .search-bar {
+      position: sticky;
+      top: var(--header-h);
+      z-index: 95;
+      padding: .65rem 1.5rem;
+      background: rgba(255,248,245,.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(237,224,216,.5);
+      box-shadow: 0 4px 20px rgba(61,36,20,.06);
+      transition: box-shadow .3s var(--easing);
     }
-    .search-wrap input {
-      width: 100%;
-      height: 44px;
-      padding: 0 44px 0 16px;
+    .search-bar-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .search-bar input {
+      flex: 1;
+      height: 46px;
+      padding: 0 78px 0 46px;
       background: var(--surface);
       border: 1.5px solid var(--border);
       border-radius: var(--radius-pill);
-      font-size: .95rem;
+      font-size: 1rem;
       font-family: inherit;
       color: var(--text);
       box-shadow: var(--shadow-sm);
       transition: border-color .25s, box-shadow .25s;
     }
-    .search-wrap input:focus {
+    .search-bar input:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 4px var(--accent-light);
     }
-    .search-wrap input::placeholder { color: var(--text-muted); }
+    .search-bar input::placeholder { color: var(--text-muted); }
     .search-icon {
       position: absolute;
-      right: 14px;
+      left: 16px;
       top: 50%;
       transform: translateY(-50%);
       font-size: 1.1rem;
-      opacity: .45;
+      opacity: .4;
       pointer-events: none;
     }
+    /* Clear button — aparece quando há texto */
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--border);
+      border: none;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      font-size: .75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, background .2s;
+      color: var(--text-mid);
+    }
+    .search-clear.visible { opacity: 1; pointer-events: all; }
+    .search-clear:hover { background: var(--accent-light); color: var(--accent); }
+
+    /* count badge inside search bar */
+    .search-count {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .search-count strong { color: var(--accent); }
 
     .header-pill {
       font-size: .85rem;
@@ -183,6 +275,44 @@
       flex-shrink: 0;
     }
     @media (max-width: 540px) { .header-pill { display: none; } }
+
+    /* ── THEME TOGGLE ── */
+    .theme-toggle {
+      margin-left: auto;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color .25s, background .25s, box-shadow .25s, transform .3s var(--spring);
+      position: relative;
+      overflow: hidden;
+    }
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-light);
+      transform: rotate(20deg) scale(1.08);
+    }
+    .theme-toggle:active { transform: scale(.92); }
+
+    /* two icons stacked, slide between them */
+    .theme-toggle .t-icon {
+      position: absolute;
+      font-size: 1.2rem;
+      line-height: 1;
+      transition: opacity .3s, transform .4s var(--spring);
+    }
+    .t-sun  { opacity: 1;  transform: translateY(0) rotate(0deg); }
+    .t-moon { opacity: 0;  transform: translateY(20px) rotate(-30deg); }
+
+    [data-theme="dark"] .t-sun  { opacity: 0;  transform: translateY(-20px) rotate(30deg); }
+    [data-theme="dark"] .t-moon { opacity: 1;  transform: translateY(0) rotate(0deg); }
 
     /* ── HERO ── */
     .hero {
@@ -227,44 +357,74 @@
       line-height: 1.65;
     }
 
-    .sort-block { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-    .sort-block label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-muted); }
-    .sort-sel {
-      height: 44px;
-      padding: 0 14px;
+    .sort-block { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .sort-block-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+      color: var(--text-muted);
+    }
+    .sort-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .sort-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 14px;
       background: var(--surface);
       border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: .95rem;
-      font-weight: 500;
+      border-radius: var(--radius-pill);
+      font-size: .82rem;
+      font-weight: 600;
       font-family: inherit;
-      color: var(--text);
+      color: var(--text-muted);
       cursor: pointer;
+      white-space: nowrap;
       box-shadow: var(--shadow-sm);
-      transition: border-color .2s;
+      transition: all .22s var(--easing);
+      line-height: 1;
     }
-    .sort-sel:focus { outline: none; border-color: var(--accent); }
+    .sort-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255,107,53,.1);
+    }
+    .sort-chip.active {
+      background: var(--accent-grad);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(255,107,53,.28);
+      transform: translateY(-1px);
+    }
+    .sort-chip-icon { font-size: .85rem; line-height: 1; }
     @media (max-width: 540px) {
       .hero { padding: 2rem 1.25rem 1rem; }
       .sort-block { width: 100%; }
-      .sort-sel { width: 100%; }
+      .sort-chips { flex-wrap: wrap; }
     }
 
     /* ── FILTER BAR ── */
     .filter-sticky {
       position: sticky;
-      top: var(--header-h);
+      top: calc(var(--header-h) + 76px);
       z-index: 90;
       background: linear-gradient(to bottom, var(--bg) 70%, transparent 100%);
-      padding: .85rem 0 .5rem;
+      padding: .5rem 0 .25rem;
     }
     .filter-bar {
       max-width: var(--max-w);
       margin: 0 auto;
-      padding: 0 1.5rem;
+      /* padding vertical absorve o translateY do hover sem ser cortado */
+      padding: .4rem 1.5rem .6rem;
       display: flex;
       gap: 10px;
       overflow-x: auto;
+      overflow-y: visible;   /* nunca corta o eixo vertical */
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
@@ -691,27 +851,44 @@
         <img src="./src/logo.webp" alt="Logo" class="logo-img" onerror="this.style.display='none'">
         <span class="logo-text">Achadinhos <em>Diários</em></span>
       </a>
-      <div class="search-wrap">
-        <input type="search" id="searchInput" placeholder="Procurar..." autocomplete="off" oninput="aplicarFiltros()">
-        <span class="search-icon">🔍</span>
-      </div>
       <div class="header-pill"><strong id="countNum">—</strong> produtos</div>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar tema" aria-label="Alternar tema claro/escuro">
+        <span class="t-icon t-sun">☀️</span>
+        <span class="t-icon t-moon">🌙</span>
+      </button>
     </div>
   </header>
+
+  <!-- SEARCH BAR sticky below header -->
+  <div class="search-bar" id="searchBar">
+    <div class="search-bar-inner">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="searchInput" placeholder="Buscar produto…" autocomplete="off" oninput="onSearchInput()">
+      <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpar busca">✕</button>
+    </div>
+  </div>
 
   <section class="hero">
     <div class="hero-text">
       <h1>Os melhores achados,<br><span class="hl">selecionados</span> pra você.</h1>
-      <p>Uma curadoria especial com ofertas incríveis que encontrei na Shopee. Clique em qualquer produto para ver detalhes.</p>
+      <p>Uma curadoria especial com ofertas incríveis disponíveis. Clique em qualquer produto para ver detalhes.</p>
     </div>
     <div class="sort-block">
-      <label for="sortSel">Organizar por</label>
-      <select class="sort-sel" id="sortSel" onchange="aplicarFiltros()">
-        <option value="recente">Mais recentes</option>
-        <option value="preco-asc">Menor preço</option>
-        <option value="preco-desc">Maior preço</option>
-        <option value="az">Ordem A–Z</option>
-      </select>
+      <span class="sort-block-label">Organizar por</span>
+      <div class="sort-chips" id="sortChips">
+        <button class="sort-chip active" data-sort="recente" onclick="setSort('recente')">
+          <span class="sort-chip-icon">🕐</span> Recentes
+        </button>
+        <button class="sort-chip" data-sort="preco-asc" onclick="setSort('preco-asc')">
+          <span class="sort-chip-icon">↑</span> Menor preço
+        </button>
+        <button class="sort-chip" data-sort="preco-desc" onclick="setSort('preco-desc')">
+          <span class="sort-chip-icon">↓</span> Maior preço
+        </button>
+        <button class="sort-chip" data-sort="az" onclick="setSort('az')">
+          <span class="sort-chip-icon">Az</span> A–Z
+        </button>
+      </div>
     </div>
   </section>
 
@@ -764,11 +941,26 @@
   </div>
 
   <script>
+    /* ─── THEME ─── */
+    (function() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
     /* ─── CONFIG ─── */
     const API_URL = "https://script.google.com/macros/s/AKfycbwO7BQje-TFZ1IXTwAk69PR8kAe74hHb2KV4jY-iNLAUzv-cAbDO0aHiItO9goLMENnfw/exec";
     const API_KEY = "netinho2007";
 
-    let db = [], visible = [], catAtual = 'todos';
+    let db = [], visible = [], catAtual = 'todos', sortAtual = 'recente';
 
     /* ─── INIT ─── */
     window.addEventListener('load', carregar);
@@ -822,7 +1014,29 @@
       };
     }
 
+    /* ─── SEARCH HANDLERS ─── */
+    function onSearchInput() {
+      const val = document.getElementById('searchInput').value;
+      // show/hide clear button
+      document.getElementById('searchClear').classList.toggle('visible', val.length > 0);
+      aplicarFiltros();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchClear').classList.remove('visible');
+      document.getElementById('searchInput').focus();
+      aplicarFiltros();
+    }
+
     /* ─── FILTERS & SORT ─── */
+    function setSort(val) {
+      sortAtual = val;
+      document.querySelectorAll('.sort-chip').forEach(b =>
+        b.classList.toggle('active', b.dataset.sort === val));
+      aplicarFiltros();
+    }
+
     function setCat(cat) {
       catAtual = cat;
       document.querySelectorAll('.pill').forEach(b =>
@@ -836,7 +1050,7 @@
       while (bar.children.length > 1) bar.removeChild(bar.lastChild);
       cats.forEach(cat => {
         const btn = document.createElement('button');
-        btn.className  = 'pill';
+        btn.className   = 'pill';
         btn.dataset.cat = cat;
         btn.textContent = cat;
         btn.onclick = () => setCat(cat);
@@ -844,12 +1058,32 @@
       });
     }
 
+    function normalizeStr(s) {
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+    }
+
     function aplicarFiltros() {
       let lista = [...db];
-      if (catAtual !== 'todos') lista = lista.filter(p => p.categoria === catAtual);
-      const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      if (q) lista = lista.filter(p => (p.titulo||'').toLowerCase().includes(q));
-      lista = ordenar(lista, document.getElementById('sortSel').value);
+
+      // 1) filter by category
+      if (catAtual !== 'todos') {
+        lista = lista.filter(p => p.categoria === catAtual);
+      }
+
+      // 2) filter by search query (accent-insensitive, trim)
+      const raw = document.getElementById('searchInput').value;
+      const q   = normalizeStr(raw);
+      if (q) {
+        lista = lista.filter(p => normalizeStr(p.titulo).includes(q));
+      }
+
+      // 3) sort
+      lista = ordenar(lista, sortAtual);
+
       visible = lista;
       document.getElementById('countNum').textContent = lista.length;
       renderGrid(lista);

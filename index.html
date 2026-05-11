@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Achadinhos Diários</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Poppins:wght@500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ── RESET ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ── TOKENS ── */
+    :root {
+      --bg-color: #FFF8F5;
+      --surface: #FFFFFF;
+      --text-main: #3D2B24;
+      --text-muted: #8C766C;
+      --accent: #FF6B35;
+      --accent-grad: linear-gradient(135deg, #FF8A4C, #FF6B35);
+      --accent-light: #FFEBE3;
+      --border-soft: #F0E4DE;
+
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-pill: 50px;
+
+      --shadow-soft: 0 12px 30px rgba(255, 107, 53, 0.06);
+      --shadow-hover: 0 20px 40px rgba(255, 107, 53, 0.12);
+
+      --max-width: 1200px;
+      --header-height: 76px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND GLOW ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100vw;
+      height: 80vh;
+      background: radial-gradient(circle, rgba(255, 235, 190, 0.6) 0%, rgba(255, 248, 245, 0) 70%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* ── TOP BANNER ── */
+    .top-banner {
+      background: var(--accent-grad);
+      color: white;
+      text-align: center;
+      padding: 8px 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .top-banner strong {
+      font-weight: 700;
+    }
+
+    /* ── HEADER ── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 248, 245, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .header-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      height: var(--header-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .logo-type {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-type span {
+      color: var(--accent);
+    }
+
+    .site-logo {
+      height: 38px; /* Ajuste a altura da logo conforme necessário */
+      width: auto;
+      display: block;
+      object-fit: contain;
+      border-radius: 100%;
+    }
+
+    .header-search {
+      flex: 1;
+      max-width: 400px;
+      position: relative;
+    }
+
+    .header-search input {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-pill);
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text-main);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      transition: all .3s ease;
+    }
+
+    .header-search input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-light);
+    }
+
+    .header-search input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .header-search .si {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .header-count {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: white;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem 2rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+
+    .hero-text h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+    }
+
+    .hero-text h1 span {
+      color: var(--accent);
+      position: relative;
+    }
+
+    .hero-text p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 420px;
+      line-height: 1.6;
+    }
+
+    .hero-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .sort-lbl {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    .sort-sel {
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 500;
+      font-family: inherit;
+      color: var(--text-main);
+      cursor: pointer;
+      outline: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      transition: border-color .2s;
+    }
+
+    .sort-sel:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── FILTERS ── */
+    .filter-wrap {
+      position: sticky;
+      top: var(--header-height);
+      z-index: 40;
+      background: linear-gradient(to bottom, var(--bg-color) 80%, rgba(255, 248, 245, 0) 100%);
+      padding: 1rem 0;
+    }
+
+    .filter-bar {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-pill {
+      padding: 8px 20px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-soft);
+      background: var(--surface);
+      font-size: 0.9rem;
+      font-weight: 500;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .25s ease;
+      white-space: nowrap;
+      scroll-snap-align: start;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .filter-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .filter-pill.active {
+      background: var(--accent-grad);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 6px 16px rgba(255, 107, 53, 0.25);
+    }
+
+    /* ── GRID ── */
+    .grid-wrap {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 1rem 1.5rem 4rem;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 2rem;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      transition: all .3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .card-img-wrap {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--bg-color);
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .5s cubic-bezier(.4, 0, .2, 1);
+      display: block;
+    }
+
+    .card:hover .card-img-wrap img {
+      transform: scale(1.08);
+    }
+
+    .cat-ribbon {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 12px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-main);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-body {
+      padding: 1.25rem 0.5rem 0.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--text-main);
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      min-height: 2.8em;
+    }
+
+    .card-price {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 1.25rem;
+    }
+
+    .btn-buy {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-light);
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      transition: all .2s ease;
+      margin-top: auto;
+    }
+
+    .card:hover .btn-buy {
+      background: var(--accent-grad);
+      color: white;
+      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+    }
+
+    .btn-buy:active {
+      transform: scale(0.96);
+    }
+
+    /* ── SKELETON ── */
+    .card-skeleton {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .skel-img {
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-md);
+      background: linear-gradient(90deg, #F5EBE6 25%, #FFF 50%, #F5EBE6 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .skel-body {
+      padding: 1rem 0.5rem;
+    }
+
+    .skel-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #F5EBE6 25%, #FFF 50%, #F5EBE6 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      margin-bottom: 10px;
+    }
+
+    .skel-line.w80 {
+      width: 80%;
+      height: 16px;
+    }
+
+    .skel-line.w50 {
+      width: 50%;
+      height: 24px;
+      margin-top: 16px;
+    }
+
+    .skel-line.tall {
+      height: 48px;
+      margin-top: 20px;
+      border-radius: var(--radius-md);
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* ── EMPTY / ERROR ── */
+    .state-box {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 5rem 2rem;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .state-box .icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .state-box h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    .state-box p {
+      color: var(--text-muted);
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: white;
+      padding: 3rem 1.5rem;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-logo {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Mantém a logo do rodapé um pouco mais discreta */
+    .footer-logo img {
+      height: 32px;
+      opacity: 0.8; 
+      border-radius: 100%;
+      filter: grayscale(60%);
+    }
+
+    .footer-note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: right;
+      line-height: 1.5;
+    }
+
+    /* ── BOTÃO REDES SOCIAIS (Agora no escopo global para funcionar no PC também) ── */
+    .btn-social {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 10px 24px;
+      background: var(--accent-light);
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: var(--radius-pill);
+      transition: all .25s ease;
+    }
+
+    .btn-social:hover {
+      background: var(--accent-grad);
+      color: white;
+      box-shadow: 0 6px 16px rgba(255, 107, 53, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .btn-social:active {
+      transform: translateY(0) scale(0.96);
+    }
+
+    /* ── BACK TO TOP ── */
+    #btt {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 48px;
+      height: 48px;
+      background: var(--accent-grad);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+      transition: all .3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      z-index: 99;
+    }
+
+    #btt.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+
+    #btt:hover {
+      transform: translateY(-5px);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card {
+      animation: fadeUp .6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .header-inner {
+        gap: 1rem;
+      }
+
+      .header-count {
+        display: none;
+      }
+
+      .hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 2rem 1.5rem 1rem;
+      }
+
+      .hero-controls {
+        width: 100%;
+        align-items: stretch;
+        margin-top: 1rem;
+      }
+
+      .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+      }
+
+      .card {
+        padding: 10px;
+      }
+
+      .card-title {
+        font-size: 0.9rem;
+      }
+
+      .card-price {
+        font-size: 1.2rem;
+      }
+
+      .btn-buy {
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .footer-note {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="top-banner">
+    🎁 Todos os links são <strong>verificados</strong> e direcionam para a Shopee oficial
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo-type">
+        <img src="./src/logo.webp" alt="Achadinhos Diários Logo" class="site-logo">
+        Achadinhos <span>Diários</span>
+      </div>
+      <div class="header-search">
+        <span class="si">🔍</span>
+        <input type="text" id="searchInput" placeholder="O que você procura hoje?" oninput="aplicarFiltros()">
+      </div>
+      <div class="header-count"><strong id="countNum">—</strong> produtos</div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Os melhores achados,<br><span>selecionados</span> pra você.</h1>
+      <p>Uma curadoria especial com ofertas incríveis que encontrei na Shopee. Navegue, descubra e garanta o seu.</p>
+    </div>
+    <div class="hero-controls">
+      <span class="sort-lbl">Organizar por</span>
+      <select class="sort-sel" id="sortSel" onchange="aplicarFiltros()">
+        <option value="recente">Mais recentes</option>
+        <option value="preco-asc">Menor preço</option>
+        <option value="preco-desc">Maior preço</option>
+        <option value="az">Ordem alfabética</option>
+      </select>
+    </div>
+  </section>
+
+  <div class="filter-wrap">
+    <div class="filter-bar" id="filterBar">
+      <button class="filter-pill active" data-cat="todos" onclick="setCat('todos')">Ver Todos</button>
+    </div>
+  </div>
+
+  <div class="grid-wrap">
+    <div class="product-grid" id="grid"></div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <img src="./src/logo.webp" alt="Achadinhos Diários Logo">
+        Achadinhos Diários
+      </div>
+      <div class="footer-note">
+        Siga-nos nas redes sociais:<br>
+        <a href="https://linktr.ee/achadinh0s.sh0pee" target="_blank" rel="noopener noreferrer" class="btn-social">
+          Acessar Linktree 📱
+        </a>
+      </div>
+      <div><h4>Todos os direitos reservados © 2026</h4></div>
+    </div>
+  </footer>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Voltar ao topo">↑</button>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwO7BQje-TFZ1IXTwAk69PR8kAe74hHb2KV4jY-iNLAUzv-cAbDO0aHiItO9goLMENnfw/exec";
+    const API_KEY = "netinho2007";
+
+    let db = [];
+    let catAtual = 'todos';
+
+    window.addEventListener('load', carregar);
+
+    window.addEventListener('scroll', () => {
+      document.getElementById('btt').classList.toggle('visible', window.scrollY > 400);
+    });
+
+    async function carregar() {
+      renderSkeleton();
+      try {
+        const res = await fetch(`${API_URL}?action=listar&key=${API_KEY}`);
+        const data = await res.json();
+
+        const listaProdutos = Array.isArray(data) ? data : (data.produtos || data.data || []);
+
+        db = listaProdutos
+          .map(normalizar)
+          .filter(p => p.status === 'feito');
+
+        montarFiltros();
+        aplicarFiltros();
+      } catch (e) {
+        document.getElementById('grid').innerHTML = `
+      <div class="state-box">
+        <div class="icon">💔</div>
+        <h3>Ops, algo deu errado</h3>
+        <p>Não consegui carregar os produtos. Tente atualizar a página.</p>
+      </div>`;
+        console.error(e);
+      }
+    }
+
+    function normalizar(p) {
+      function sem(str) {
+        return String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+      }
+      const flat = {};
+      Object.keys(p).forEach(k => { flat[sem(k)] = p[k]; });
+
+      function lookup(canonical, fb = '') {
+        const v = p[canonical];
+        if (v !== undefined && v !== null && v !== '') return v;
+        const v2 = flat[sem(canonical)];
+        if (v2 !== undefined && v2 !== null && v2 !== '') return v2;
+        return fb;
+      }
+
+      return {
+        id: lookup('ID'),
+        titulo: lookup('Título') || lookup('Titulo'),
+        preco: lookup('Preço') || lookup('Preco'),
+        imagem: lookup('Imagem'),
+        link: lookup('Link'),
+        categoria: String(lookup('Categoria') || '').trim(),
+        status: String(lookup('Status') || 'pendente').toLowerCase().trim(),
+      };
+    }
+
+    function setCat(cat) {
+      catAtual = cat;
+      document.querySelectorAll('.filter-pill').forEach(b =>
+        b.classList.toggle('active', b.dataset.cat === cat));
+      aplicarFiltros();
+    }
+
+    function montarFiltros() {
+      const cats = [...new Set(db.map(p => p.categoria).filter(Boolean))].sort();
+      const bar = document.getElementById('filterBar');
+
+      while (bar.children.length > 1) {
+        bar.removeChild(bar.lastChild);
+      }
+
+      cats.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-pill';
+        btn.dataset.cat = cat;
+        btn.textContent = cat;
+        btn.onclick = () => setCat(cat);
+        bar.appendChild(btn);
+      });
+    }
+
+    function aplicarFiltros() {
+      let lista = [...db];
+
+      if (catAtual !== 'todos')
+        lista = lista.filter(p => p.categoria === catAtual);
+
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (q)
+        lista = lista.filter(p => (p.titulo || '').toLowerCase().includes(q));
+
+      lista = ordenar(lista, document.getElementById('sortSel').value);
+
+      document.getElementById('countNum').textContent = lista.length;
+      renderGrid(lista);
+    }
+
+    function ordenar(lista, crit) {
+      const arr = [...lista];
+      if (crit === 'preco-asc') return arr.sort((a, b) => precoNum(a) - precoNum(b));
+      if (crit === 'preco-desc') return arr.sort((a, b) => precoNum(b) - precoNum(a));
+      if (crit === 'az') return arr.sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
+      return arr;
+    }
+
+    function renderSkeleton() {
+      document.getElementById('grid').innerHTML = Array(8).fill(0).map(() => `
+    <div class="card-skeleton">
+      <div class="skel-img"></div>
+      <div class="skel-body">
+        <div class="skel-line w80"></div>
+        <div class="skel-line w50"></div>
+        <div class="skel-line tall"></div>
+      </div>
+    </div>`).join('');
+    }
+
+    function renderGrid(lista) {
+      const grid = document.getElementById('grid');
+
+      if (!lista.length) {
+        const msg = db.length === 0
+          ? ['🎁', 'Preparando os presentes...', 'Em breve teremos novidades por aqui!']
+          : ['🧐', 'Puxa, não encontrei', 'Tente buscar com outras palavras ou filtros.'];
+        grid.innerHTML = `
+      <div class="state-box">
+        <div class="icon">${msg[0]}</div>
+        <h3>${msg[1]}</h3>
+        <p>${msg[2]}</p>
+      </div>`;
+        return;
+      }
+
+      grid.innerHTML = lista.map((p, i) => cardHtml(p, i)).join('');
+    }
+
+    function cardHtml(p, idx) {
+      const img = p.imagem || 'https://placehold.co/400x400/FFF8F5/FF6B35?text=Sem+Imagem';
+      const titulo = esc(p.titulo || 'Produto Incrível');
+      const preco = fmtMoeda(p.preco);
+      const cat = esc(p.categoria);
+      const link = p.link || '#';
+      const delay = Math.min(idx * 50, 400);
+
+      return `
+  <article class="card" style="animation-delay:${delay}ms">
+    <div class="card-img-wrap">
+      <img
+        src="${img}"
+        alt="${titulo}"
+        loading="lazy"
+        onerror="this.src='https://placehold.co/400x400/FFF8F5/FF6B35?text=Indisponível'">
+      ${cat ? `<span class="cat-ribbon">${cat}</span>` : ''}
+    </div>
+    <div class="card-body">
+      <div class="card-title" title="${titulo}">${titulo}</div>
+      <div class="card-price">${preco}</div>
+      <a class="btn-buy" href="${link}" target="_blank" rel="noopener noreferrer">
+        Eu Quero! 🛒
+      </a>
+    </div>
+  </article>`;
+    }
+
+    function precoNum(p) {
+      if (!p.preco) return 0;
+      let str = String(p.preco).replace('R$', '').trim();
+      if (str.includes(',')) {
+        str = str.replace(/\./g, '').replace(',', '.');
+      }
+      let n = parseFloat(str);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function fmtMoeda(valor) {
+      if (!valor) return 'R$ 0,00';
+      if (String(valor).includes('R$')) return valor;
+      return precoNum({ preco: valor })
+        .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function esc(str) {
+      if (!str) return '';
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+
+</html>

@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Achadinhos Diários</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +34,7 @@
       --accent-light: rgba(212, 141, 94, 0.1);
       --border: rgba(44, 30, 22, 0.08);
       --border-glass: rgba(255, 255, 255, 0.4);
+      --nav-bg: rgba(255, 255, 255, 0.95);
       --radius-sm: 14px;
       --radius-md: 22px;
       --radius-lg: 30px;
@@ -60,10 +61,19 @@
       --accent-light: rgba(212, 141, 94, 0.15);
       --border: rgba(247, 242, 233, 0.08);
       --border-glass: rgba(255, 255, 255, 0.03);
+      --nav-bg: rgba(30, 26, 22, 0.95);
       --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.4);
       --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.5);
       --shadow-lg: 0 24px 50px rgba(0, 0, 0, 0.6);
       --shadow-acc: 0 12px 24px rgba(212, 141, 94, 0.2);
+    }
+
+    /* ── CORREÇÃO DE OVERFLOW ── */
+    html,
+    body {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     body {
@@ -71,12 +81,10 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      overflow-x: hidden;
-      padding-bottom: 100px;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── SCROLLBAR OVERLAY ── */
+    /* SCROLLBAR */
     html {
       scrollbar-width: thin;
       scrollbar-color: rgba(44, 30, 22, 0.2) transparent;
@@ -106,15 +114,11 @@
       background: rgba(247, 242, 233, 0.15);
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--text-muted);
-    }
-
     body::before {
       content: '';
       position: fixed;
-      width: 70vw;
-      height: 70vw;
+      width: 80vw;
+      height: 80vw;
       border-radius: 50%;
       filter: blur(150px);
       z-index: -1;
@@ -136,9 +140,9 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(var(--bg), 0.7);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      background: rgba(var(--bg), 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
     }
 
@@ -225,7 +229,7 @@
     @keyframes smoothSlideRight {
       from {
         opacity: 0;
-        transform: translateX(30px) scale(0.98);
+        transform: translateX(20px) scale(0.99);
       }
 
       to {
@@ -237,7 +241,7 @@
     @keyframes smoothSlideLeft {
       from {
         opacity: 0;
-        transform: translateX(-30px) scale(0.98);
+        transform: translateX(-20px) scale(0.99);
       }
 
       to {
@@ -246,17 +250,17 @@
       }
     }
 
-    /* ── CÁPSULA DO HERÓI (INÍCIO) ── */
+    /* ── INÍCIO (HERÓI) ── */
     .hero-panel {
       text-align: center;
       max-width: 640px;
-      margin: 2rem auto;
+      margin: 1rem auto 2rem;
     }
 
     .capsule-text-wrap {
       background: var(--surface-solid);
       border-radius: var(--radius-lg);
-      padding: 3rem 2.5rem;
+      padding: 2.5rem 2rem;
       box-shadow: var(--shadow-sm);
       border: 1px solid var(--border);
       position: relative;
@@ -273,10 +277,10 @@
 
     .hero-panel h1 {
       font-family: 'Poppins', sans-serif;
-      font-size: clamp(2rem, 5vw, 2.6rem);
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
       font-weight: 800;
       letter-spacing: -1px;
-      margin-bottom: 1.2rem;
+      margin-bottom: 1rem;
       line-height: 1.15;
       color: var(--text);
     }
@@ -290,8 +294,8 @@
 
     .hero-panel p {
       color: var(--text-mid);
-      font-size: 1.05rem;
-      line-height: 1.6;
+      font-size: 1rem;
+      line-height: 1.5;
       max-width: 480px;
       margin: 0 auto;
       font-weight: 500;
@@ -302,7 +306,7 @@
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
 
     .filter-scroll-wrap {
@@ -324,22 +328,17 @@
     }
 
     .pill {
-      padding: 14px 24px;
+      padding: 12px 22px;
       border-radius: var(--radius-pill);
       border: 1px solid var(--border);
       background: var(--surface-solid);
-      font-size: .95rem;
+      font-size: .9rem;
       font-weight: 700;
       color: var(--text-mid);
       cursor: pointer;
       white-space: nowrap;
       transition: all .3s var(--spring);
       box-shadow: var(--shadow-sm);
-    }
-
-    .pill:hover {
-      border-color: var(--accent-light);
-      transform: translateY(-2px);
     }
 
     .pill.active {
@@ -353,42 +352,40 @@
     .sort-container {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
       background: var(--surface-2);
-      padding: 12px 16px;
+      padding: 12px;
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
     }
 
     .sort-label {
-      font-size: .75rem;
+      font-size: .7rem;
       font-weight: 800;
       text-transform: uppercase;
       color: var(--text-muted);
       letter-spacing: 1px;
+      width: 100%;
+      margin-bottom: -4px;
     }
 
     .sort-chips {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
     .sort-chip {
-      padding: 8px 16px;
+      padding: 8px 14px;
       background: transparent;
       border: 1px solid transparent;
       border-radius: var(--radius-pill);
-      font-size: .85rem;
+      font-size: .8rem;
       font-weight: 700;
       color: var(--text-mid);
       cursor: pointer;
       transition: all .2s;
-    }
-
-    .sort-chip:hover {
-      background: rgba(44, 30, 22, 0.05);
     }
 
     .sort-chip.active {
@@ -398,10 +395,10 @@
       border-color: var(--border);
     }
 
-    /* ── PESQUISADOR ── */
+    /* ── BUSCA ── */
     .search-hero {
       max-width: 600px;
-      margin: 2rem auto;
+      margin: 1rem auto 2rem;
     }
 
     .search-wrapper {
@@ -413,12 +410,12 @@
 
     .search-wrapper input {
       width: 100%;
-      height: 64px;
-      padding: 0 64px 0 54px;
+      height: 60px;
+      padding: 0 54px 0 50px;
       background: var(--surface-solid);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: 500;
       color: var(--text);
       box-shadow: var(--shadow-sm);
@@ -434,7 +431,7 @@
 
     .search-icon {
       position: absolute;
-      left: 20px;
+      left: 16px;
       font-size: 1.3rem;
       color: var(--text-muted);
       pointer-events: none;
@@ -442,12 +439,12 @@
 
     .search-clear {
       position: absolute;
-      right: 16px;
+      right: 12px;
       background: var(--surface-2);
       border: none;
       border-radius: 50%;
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -465,8 +462,8 @@
     }
 
     .search-results-info {
-      margin-top: 1.5rem;
-      font-size: .95rem;
+      margin-top: 1.2rem;
+      font-size: .9rem;
       color: var(--text-muted);
       font-weight: 600;
       text-align: center;
@@ -503,7 +500,6 @@
       }
     }
 
-    /* Cards */
     .card {
       background: var(--surface);
       backdrop-filter: blur(18px);
@@ -530,13 +526,13 @@
     }
 
     .card:hover {
-      transform: translateY(-6px);
-      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
       border-color: var(--accent-light);
     }
 
     .card:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
 
     .card-img {
@@ -553,21 +549,15 @@
       object-fit: cover;
     }
 
-    .card:hover .card-img img {
-      transform: scale(1.08);
-      transition: transform .6s var(--easing);
-    }
-
     .cat-tag {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      padding: 6px 12px;
+      top: 8px;
+      left: 8px;
+      padding: 4px 10px;
       background: rgba(var(--surface-solid), 0.9);
       backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       border-radius: var(--radius-pill);
-      font-size: .65rem;
+      font-size: .6rem;
       font-weight: 800;
       color: var(--text);
       text-transform: uppercase;
@@ -575,35 +565,8 @@
       z-index: 2;
     }
 
-    .img-hint {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(var(--text), 0.4) 0%, transparent 50%);
-      display: flex;
-      align-items: flex-end;
-      padding: 12px;
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 1;
-    }
-
-    .card:hover .img-hint {
-      opacity: 1;
-    }
-
-    .img-hint span {
-      font-size: .75rem;
-      font-weight: 700;
-      color: var(--bg);
-      background: rgba(var(--bg), 0.2);
-      backdrop-filter: blur(6px);
-      padding: 6px 14px;
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(var(--bg), 0.3);
-    }
-
     .card-body {
-      padding: 1.2rem 0.2rem 0.2rem;
+      padding: 1rem 0.2rem 0.2rem;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -611,11 +574,11 @@
 
     .card-title {
       font-family: 'Poppins', sans-serif;
-      font-size: .95rem;
+      font-size: .9rem;
       font-weight: 600;
-      line-height: 1.4;
+      line-height: 1.3;
       color: var(--text);
-      margin-bottom: .6rem;
+      margin-bottom: .4rem;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       line-clamp: 2;
@@ -624,10 +587,10 @@
     }
 
     .card-price {
-      font-size: 1.4rem;
+      font-size: 1.25rem;
       font-weight: 800;
       color: var(--accent);
-      margin-bottom: 1.2rem;
+      margin-bottom: 1rem;
       letter-spacing: -0.5px;
     }
 
@@ -635,11 +598,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 14px;
+      padding: 12px;
       background: var(--surface-2);
       color: var(--text);
       text-decoration: none;
-      font-size: .95rem;
+      font-size: .9rem;
       font-weight: 700;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
@@ -653,26 +616,25 @@
       box-shadow: var(--shadow-acc);
     }
 
-    /* ── BARRA DE NAVEGAÇÃO INFERIOR REDUZIDA & COMPACTA ── */
+    /* ── NAV INFERIOR LEVEMENTE OPACA ── */
     .bottom-nav {
       position: fixed;
-      bottom: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom));
       left: 50%;
-      transform: translateX(-50%);
-      background: rgba(var(--surface-solid), 0.85);
-      backdrop-filter: blur(34px);
-      -webkit-backdrop-filter: blur(34px);
+      transform: translateX(-50%) translateZ(0);
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border);
       border-radius: var(--radius-pill);
       padding: 4px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: var(--shadow-lg);
-      z-index: 1500;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      z-index: 9999;
       width: calc(100% - 2rem);
-      max-width: 360px;
-      /* Reduzido de 440px para 360px */
+      max-width: 340px;
     }
 
     .nav-indicator {
@@ -702,7 +664,6 @@
       font-family: inherit;
       font-weight: 700;
       font-size: .7rem;
-      /* Reduzido de .75rem */
       transition: color 0.3s var(--spring);
       flex: 1;
       position: relative;
@@ -710,30 +671,26 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    .nav-item:hover {
-      color: var(--text);
-    }
-
     .nav-item.active {
       color: #fff;
     }
 
     .nav-item .icon {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       transition: transform 0.4s var(--spring);
     }
 
-    /* Reduzido de 1.3rem */
     .nav-item.active .icon {
       transform: translateY(-1px) scale(1.08);
     }
 
-    /* ── PREMIUM FOOTER INTEGRADO ── */
+    /* ── FOOTER COM ESPAÇO EXTRA (CORREÇÃO DE SOBREPOSIÇÃO) ── */
     footer {
       background: var(--surface-solid);
       border-top: 1px solid var(--border);
-      padding: 2.5rem 1.5rem;
-      margin-top: 4rem;
+      /* O calc() no padding-bottom adiciona +6.5rem (~104px) de espaço limpo no final da página */
+      padding: 2.5rem 1.5rem calc(6.5rem + env(safe-area-inset-bottom, 20px));
+      margin-top: 2rem;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
 
@@ -776,15 +733,6 @@
       font-weight: 700;
       border-radius: var(--radius-pill);
       border: 1px solid var(--border);
-      transition: all .2s;
-    }
-
-    .btn-social:hover {
-      background: var(--accent-grad);
-      color: #fff;
-      border-color: transparent;
-      box-shadow: var(--shadow-acc);
-      transform: translateY(-2px);
     }
 
     .footer-copy {
@@ -802,18 +750,18 @@
       }
     }
 
-    /* ── MODAL ── */
+    /* ── MODAL ULTRA-COMPACTO E CENTRALIZADO ── */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      z-index: 2000;
+      z-index: 10000;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 1.5rem;
       opacity: 0;
       pointer-events: none;
-      transition: opacity .4s var(--easing);
+      transition: opacity .3s var(--easing);
     }
 
     .modal-overlay.open {
@@ -824,9 +772,9 @@
     .modal-backdrop {
       position: absolute;
       inset: 0;
-      background: rgba(var(--text), 0.4);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      background: rgba(var(--text), 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .modal-box {
@@ -835,42 +783,41 @@
       background: var(--surface-solid);
       border-radius: var(--radius-lg);
       width: 100%;
-      max-width: 420px;
-      max-height: 85vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
+      max-width: 380px;
       display: flex;
       flex-direction: column;
-      transform: scale(.9) translateY(20px);
+      transform: scale(.9) translateY(10px);
       transition: transform .4s var(--spring);
       border: 1px solid var(--border-glass);
-      scrollbar-width: none;
-    }
-
-    .modal-box::-webkit-scrollbar {
-      display: none;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     }
 
     .modal-overlay.open .modal-box {
       transform: scale(1) translateY(0);
     }
 
+    .modal-img-wrap {
+      display: flex;
+      justify-content: center;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+
     .modal-img-wrap img {
       width: 100%;
-      aspect-ratio: 1/1;
-      object-fit: contain;
-      background: var(--surface-2);
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      max-height: 220px;
+      object-fit: cover;
     }
 
     .modal-close {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 40px;
-      height: 40px;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: rgba(var(--surface-solid), 0.85);
+      background: rgba(var(--surface-solid), 0.9);
       backdrop-filter: blur(8px);
       border: 1px solid var(--border);
       font-size: 1.4rem;
@@ -880,47 +827,44 @@
       cursor: pointer;
       z-index: 10;
       color: var(--text);
-      transition: all .3s var(--spring);
-    }
-
-    .modal-close:hover {
-      transform: scale(1.1);
-      background: var(--surface-solid);
     }
 
     .modal-body {
-      padding: 2rem;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
 
     .modal-cat {
       display: inline-block;
-      padding: 6px 14px;
+      padding: 4px 12px;
       background: rgba(var(--accent), 0.12);
       border-radius: var(--radius-pill);
-      font-size: .75rem;
+      font-size: .7rem;
       font-weight: 800;
       color: var(--accent);
-      margin-bottom: 1rem;
+      margin-bottom: .6rem;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .modal-title {
       font-family: 'Poppins', sans-serif;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--text);
-      line-height: 1.4;
-      margin-bottom: 1rem;
+      line-height: 1.3;
+      margin-bottom: .8rem;
     }
 
     .modal-price {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: 800;
       color: var(--text);
-      margin-bottom: 2rem;
+      margin-bottom: 1.2rem;
       display: inline-block;
-      padding: 12px 24px;
+      padding: 8px 20px;
       background: var(--surface-2);
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
@@ -932,7 +876,7 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 18px;
+      padding: 14px;
       background: var(--accent-grad);
       color: #fff;
       text-decoration: none;
@@ -943,15 +887,9 @@
       transition: transform .2s;
     }
 
-    .btn-modal-buy:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 16px 32px rgba(var(--accent), 0.3);
-    }
-
     /* ── SKELETON ── */
     .skel {
       background: var(--surface);
-      backdrop-filter: blur(10px);
       border-radius: var(--radius-md);
       padding: 10px;
       border: 1px solid var(--border-glass);
@@ -959,7 +897,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .skel::after {
@@ -983,7 +921,7 @@
     }
 
     .skel-line {
-      height: 14px;
+      height: 12px;
       border-radius: var(--radius-pill);
       background: var(--surface-2);
       animation: premiumPulse 1.8s infinite ease-in-out;
@@ -995,11 +933,11 @@
 
     .skel-line.price {
       width: 45%;
-      height: 20px;
+      height: 18px;
     }
 
     .skel-line.button {
-      height: 46px;
+      height: 42px;
       border-radius: var(--radius-sm);
       margin-top: auto;
     }
@@ -1025,7 +963,7 @@
     .state-box {
       grid-column: 1 / -1;
       text-align: center;
-      padding: 6rem 1rem;
+      padding: 4rem 1rem;
     }
 
     .state-box .ico {
@@ -1035,7 +973,7 @@
 
     .state-box h3 {
       font-family: 'Poppins', sans-serif;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       color: var(--text);
       margin-bottom: .5rem;
     }
@@ -1074,12 +1012,12 @@
           </div>
         </div>
         <div class="sort-container">
-          <span class="sort-label">Ordenar ofertas por</span>
+          <span class="sort-label">Ordenar ofertas por:</span>
           <div class="sort-chips" id="sortChips">
             <button class="sort-chip active" data-sort="recente" onclick="setSort('recente')">🕐 Recentes</button>
             <button class="sort-chip" data-sort="preco-asc" onclick="setSort('preco-asc')">↓ Menor Preço</button>
             <button class="sort-chip" data-sort="preco-desc" onclick="setSort('preco-desc')">↑ Maior Preço</button>
-            <button class="sort-chip" data-sort="az" onclick="setSort('az')">Ordem Alfabética</button>
+            <button class="sort-chip" data-sort="az" onclick="setSort('az')">A-Z</button>
           </div>
         </div>
       </div>
@@ -1089,7 +1027,7 @@
       <div class="search-hero">
         <div class="search-wrapper">
           <span class="search-icon">🔍</span>
-          <input type="search" id="searchInput" placeholder="Digite o nome do produto..." autocomplete="off"
+          <input type="search" id="searchInput" placeholder="Nome do produto..." autocomplete="off"
             oninput="onSearchInput()">
           <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
         </div>
@@ -1377,7 +1315,6 @@
           <div class="card-img">
             <img src="${img}" alt="${title}" loading="lazy" onerror="this.src='https://placehold.co/400x400/F7F2E9/D48D5E?text=Indisponível'">
             ${cat ? `<span class="cat-tag">${cat}</span>` : ''}
-            <div class="img-hint"><span>🔍 Ver detalhes</span></div>
           </div>
           <div class="card-body">
             <div class="card-title" title="${title}">${title}</div>

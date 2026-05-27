@@ -386,8 +386,8 @@ function updateDropdownLabels() {
   });
 }
 
-function openHomeCollection(kind = 'recent') {
-  homeListMode = kind === 'recommended' ? 'recommended' : 'recent';
+function openHomeCollection(kind = 'promotions') {
+  homeListMode = kind === 'recommended' ? 'recommended' : 'promotions';
   catAtual = 'todos';
   sortAtual = 'recente';
   switchTab('explorer', { keepHomeList: true });
@@ -526,11 +526,18 @@ function getRecommendedProducts(limit = 10) {
     .slice(0, limit);
 }
 
+function getPromotionProducts(limit = 10) {
+  return db
+    .map((product, index) => ({ product, index }))
+    .filter(({ product }) => isSimFlag(product.descontoAleatorio))
+    .slice(0, limit);
+}
+
 function renderHomeShowcases() {
-  const recent = db.map((product, index) => ({ product, index })).slice(0, 10);
+  const promotions = getPromotionProducts(10);
   const recommended = getRecommendedProducts(10);
-  fillHomeRail('homeRecentRail', recent);
-  fillHomeRail('homeRecommendedRail', recommended);
+  fillHomeRail('homePromotionsRail', promotions, 'Nenhuma promoção marcada na planilha ainda.');
+  fillHomeRail('homeRecommendedRail', recommended, 'Nenhum achadinho disponível no momento.');
 }
 
 function renderHomeCategories() {
@@ -554,13 +561,13 @@ function setRefreshState(state, text = '') {
     sub.textContent = 'Buscando novidades no banco de dados';
   } else if (state === 'done') {
     title.textContent = text || 'Tudo atualizado';
-    sub.textContent = 'Recentes e recomendados foram sincronizados';
+    sub.textContent = 'Promoções e recomendados foram sincronizados';
   } else if (state === 'error') {
     title.textContent = 'Tentar novamente';
     sub.textContent = 'A conexão falhou, mas o cache continua disponível';
   } else {
     title.textContent = 'Atualizar vitrine';
-    sub.textContent = 'Verificar recentes e recomendados agora';
+    sub.textContent = 'Verificar promoções e recomendados agora';
   }
 }
 
@@ -569,7 +576,7 @@ const METRIC_LABELS = {
   sync: 'Sincronização ativa. A vitrine usa cache local para abrir rápido e consulta o banco quando você atualiza.',
   total: 'Total de produtos com status feito disponíveis para navegação nesta vitrine.',
   cats: 'Quantidade de categorias detectadas automaticamente a partir da planilha.',
-  drops: 'Produtos cujo preço caiu em relação ao histórico salvo no navegador.',
+  drops: 'Produtos com queda de preço detectada no histórico local ou marcados com DescontoAleatorio na planilha.',
   hot: 'Produtos marcados como urgentes no banco, usados para destacar escassez visual.'
 };
 
@@ -650,17 +657,17 @@ function aplicarFiltros(forceRender = false) {
   if (homeListMode) {
     const lista = homeListMode === 'recommended'
       ? getRecommendedProducts(db.length).map(item => item.product)
-      : db.slice();
+      : db.filter(p => isSimFlag(p.descontoAleatorio));
     visible = lista;
     if (countEl) countEl.textContent = lista.length;
     const meta = document.getElementById('exploreResultMeta');
     const hint = document.getElementById('exploreResultHint');
     if (meta) meta.textContent = homeListMode === 'recommended'
       ? `${lista.length} achadinho${lista.length === 1 ? '' : 's'} recomendados`
-      : `${lista.length} novidade${lista.length === 1 ? '' : 's'} adicionada${lista.length === 1 ? '' : 's'}`;
+      : `${lista.length} ${lista.length === 1 ? 'promoção ativa' : 'promoções ativas'}`;
     if (hint) hint.textContent = homeListMode === 'recommended'
       ? 'Lista completa ranqueada por preço, destaque, urgência e histórico de queda.'
-      : 'Lista completa em ordem de chegada, igual à vitrine de recentes.';
+      : 'Lista completa com produtos marcados como DescontoAleatorio na planilha.';
     renderGrid(lista, true);
     return;
   }
@@ -884,9 +891,9 @@ function updateHomeStats(timestamp = Date.now()) {
   setText('homeCats', catsCount || '0');
   setText('homeDrops', drops || '0');
   setText('homeHot', hot || '0');
-  setText('homeMinPrice', min ? moneyFromNumber(min) : '—');
-  setText('homeAvgPrice', avg ? moneyFromNumber(avg) : '—');
-  setText('homeMaxPrice', max ? moneyFromNumber(max) : '—');
+  setText('techMinPrice', min ? moneyFromNumber(min) : '—');
+  setText('techAvgPrice', avg ? moneyFromNumber(avg) : '—');
+  setText('techMaxPrice', max ? moneyFromNumber(max) : '—');
   setText('homeStatus', total ? `Última leitura às ${hora}` : 'Aguardando produtos do banco de dados');
   setText('techCacheInfo', total ? `${prices.length} preços válidos · cache inteligente ativo` : 'Sem dados carregados ainda');
   setText('techSyncState', total ? 'Online' : 'Standby');
@@ -1085,13 +1092,13 @@ function cardHtml(p, i) {
     </article>`;
 }
 
-function fillHomeRail(railId, products) {
+function fillHomeRail(railId, products, emptyText = 'Carregando achadinhos...') {
   const rail = document.getElementById(railId);
   if (!rail) return;
   rail.innerHTML = '';
 
   if (!products.length) {
-    rail.innerHTML = '<div class="home-row-empty">Carregando achadinhos...</div>';
+    rail.innerHTML = `<div class="home-row-empty">${esc(emptyText)}</div>`;
     return;
   }
 

@@ -33,6 +33,18 @@
       --accent-2: #EBC7A1;
       --accent-grad: linear-gradient(135deg, #D48D5E 0%, #EBC7A1 100%);
       --accent-light: rgba(212, 141, 94, 0.15);
+      --buy: #16A34A;
+      --buy-2: #22C55E;
+      --buy-grad: linear-gradient(135deg, #16A34A 0%, #22C55E 100%);
+      --buy-light: rgba(34, 197, 94, 0.14);
+      --deal: #E85D04;
+      --deal-2: #F97316;
+      --deal-light: rgba(249, 115, 22, 0.13);
+      --urgency: #DC2626;
+      --urgency-2: #FB7185;
+      --urgency-light: rgba(220, 38, 38, 0.12);
+      --trust: #F59E0B;
+      --trust-light: rgba(245, 158, 11, 0.14);
       --border: rgba(44, 30, 22, 0.08);
       --border-glass: rgba(255, 255, 255, 0.4);
       --nav-bg: rgba(255, 255, 255, 0.95);
@@ -60,6 +72,18 @@
       --accent-2: #EBC7A1;
       --accent-grad: linear-gradient(135deg, #EBC7A1 0%, #D48D5E 100%);
       --accent-light: rgba(212, 141, 94, 0.2);
+      --buy: #22C55E;
+      --buy-2: #86EFAC;
+      --buy-grad: linear-gradient(135deg, #16A34A 0%, #22C55E 100%);
+      --buy-light: rgba(34, 197, 94, 0.18);
+      --deal: #FB923C;
+      --deal-2: #FDBA74;
+      --deal-light: rgba(251, 146, 60, 0.16);
+      --urgency: #FB7185;
+      --urgency-2: #F43F5E;
+      --urgency-light: rgba(251, 113, 133, 0.15);
+      --trust: #FBBF24;
+      --trust-light: rgba(251, 191, 36, 0.16);
       --border: rgba(247, 242, 233, 0.08);
       --border-glass: rgba(255, 255, 255, 0.03);
       --nav-bg: rgba(30, 26, 22, 0.95);
@@ -592,8 +616,9 @@
     }
 
     .card-rating .stars {
-      color: #FFB800;
+      color: var(--trust);
       letter-spacing: -1px;
+      text-shadow: 0 1px 8px var(--trust-light);
     }
 
     .price-row {
@@ -610,6 +635,58 @@
       font-weight: 500;
     }
 
+    .price-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      max-width: 100%;
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.68rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.1px;
+      margin: -0.25rem 0 0.65rem;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .price-change.drop {
+      color: #fff;
+      background: linear-gradient(135deg, var(--deal), var(--deal-2));
+      box-shadow: 0 10px 20px var(--deal-light);
+    }
+
+    .price-change.rise {
+      color: var(--urgency);
+      background: var(--urgency-light);
+      border-color: rgba(220, 38, 38, 0.15);
+    }
+
+    .deal-badge {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      max-width: calc(100% - 16px);
+      padding: 7px 10px;
+      border-radius: var(--radius-pill);
+      color: #fff;
+      background: linear-gradient(135deg, var(--deal), var(--deal-2));
+      box-shadow: 0 10px 20px rgba(232, 93, 4, 0.25);
+      font-size: 0.66rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .scarcity-bar-wrap {
       width: 100%;
       height: 6px;
@@ -622,16 +699,21 @@
 
     .scarcity-bar {
       height: 100%;
-      background: var(--accent-grad);
+      background: linear-gradient(135deg, var(--urgency), var(--deal-2));
       border-radius: var(--radius-pill);
     }
 
     .scarcity-text {
+      width: fit-content;
       font-size: 0.65rem;
-      font-weight: 700;
-      color: var(--accent);
+      font-weight: 900;
+      color: var(--urgency);
+      background: var(--urgency-light);
+      border: 1px solid rgba(220, 38, 38, 0.12);
+      border-radius: var(--radius-pill);
+      padding: 5px 9px;
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       display: block;
     }
 
@@ -656,9 +738,10 @@
 
     .card-price {
       font-size: 1.35rem;
-      font-weight: 800;
-      color: var(--text);
+      font-weight: 900;
+      color: var(--buy);
       letter-spacing: -0.5px;
+      text-shadow: 0 1px 12px var(--buy-light);
     }
 
     .btn-buy {
@@ -666,22 +749,38 @@
       align-items: center;
       justify-content: center;
       padding: 12px;
-      background: var(--accent-light);
-      color: var(--accent);
+      background: var(--buy-grad);
+      color: #fff;
       text-decoration: none;
       font-size: .95rem;
-      font-weight: 800;
+      font-weight: 900;
       border-radius: var(--radius-sm);
-      border: 1px solid transparent;
+      border: 1px solid rgba(255, 255, 255, 0.18);
       transition: all .4s var(--spring);
       margin-top: auto;
+      box-shadow: 0 12px 26px rgba(22, 163, 74, 0.26);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-buy::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.24) 45%, transparent 70%);
+      transform: translateX(-120%);
+      transition: transform 0.65s var(--spring);
     }
 
     .card:hover .btn-buy {
-      background: var(--accent-grad);
+      background: var(--buy-grad);
       color: #fff;
-      box-shadow: var(--shadow-acc);
+      box-shadow: 0 16px 32px rgba(22, 163, 74, 0.34);
       transform: scale(1.02);
+    }
+
+    .card:hover .btn-buy::after {
+      transform: translateX(120%);
     }
 
     /* ── NAV INFERIOR ── */
@@ -928,28 +1027,52 @@
 
     .modal-price {
       font-size: 2rem;
-      font-weight: 800;
-      color: var(--accent);
-      margin-bottom: 1.2rem;
+      font-weight: 900;
+      color: var(--buy);
+      margin-bottom: 0.7rem;
       display: inline-block;
       padding: 8px 24px;
-      background: var(--surface-2);
+      background: var(--buy-light);
       border-radius: var(--radius-md);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(34, 197, 94, 0.18);
       letter-spacing: -1px;
+      box-shadow: 0 12px 28px rgba(22, 163, 74, 0.10);
+    }
+
+    .modal-price-change {
+      display: none;
+      margin: -0.15rem 0 1rem;
+      padding: 8px 13px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+
+    .modal-price-change.drop {
+      display: inline-flex;
+      color: #fff;
+      background: linear-gradient(135deg, var(--deal), var(--deal-2));
+      box-shadow: 0 10px 20px var(--deal-light);
+    }
+
+    .modal-price-change.rise {
+      display: inline-flex;
+      color: var(--urgency);
+      background: var(--urgency-light);
+      border: 1px solid rgba(220, 38, 38, 0.15);
     }
 
     @keyframes pulseBuy {
       0% {
-        box-shadow: 0 0 0 0 rgba(212, 141, 94, 0.5);
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.42);
       }
 
       70% {
-        box-shadow: 0 0 0 12px rgba(212, 141, 94, 0);
+        box-shadow: 0 0 0 12px rgba(22, 163, 74, 0);
       }
 
       100% {
-        box-shadow: 0 0 0 0 rgba(212, 141, 94, 0);
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
       }
     }
 
@@ -959,13 +1082,13 @@
       justify-content: center;
       width: 100%;
       padding: 16px;
-      background: var(--accent-grad);
+      background: var(--buy-grad);
       color: #fff;
       text-decoration: none;
       font-size: 1.1rem;
-      font-weight: 800;
+      font-weight: 900;
       border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-acc);
+      box-shadow: 0 18px 36px rgba(22, 163, 74, 0.30);
       transition: transform .2s var(--spring);
       animation: pulseBuy 2s infinite;
     }
@@ -1332,6 +1455,22 @@
         letter-spacing: -2px;
       }
 
+      .deal-badge {
+        right: 6px;
+        bottom: 6px;
+        padding: 5px 7px;
+        font-size: 0.52rem;
+        letter-spacing: 0.15px;
+      }
+
+      .price-change {
+        max-width: 100%;
+        padding: 5px 7px;
+        margin: -0.1rem 0 0.5rem;
+        font-size: 0.55rem;
+        gap: 4px;
+      }
+
       .card-title {
         min-height: 2.05em;
         margin-bottom: 0.45rem;
@@ -1665,6 +1804,7 @@
         <span id="modalCat" class="modal-cat"></span>
         <h2 id="modalTitle" class="modal-title"></h2>
         <div id="modalPrice" class="modal-price"></div>
+        <div id="modalPriceChange" class="modal-price-change"></div>
         <a id="modalLink" class="btn-modal-buy" href="#" target="_blank" rel="noopener noreferrer">Comprar Agora 🛒</a>
       </div>
     </div>
@@ -1748,6 +1888,7 @@
 
     const CACHE_VERSION = 'achadinhos_home_v2';
     const CACHE_KEY = `${CACHE_VERSION}:produtos`;
+    const PRICE_HISTORY_KEY = `${CACHE_VERSION}:precos_v1`;
     const CACHE_TTL_MS = 10 * 60 * 1000;
     const FETCH_TIMEOUT_MS = 12000;
     const SEARCH_DEBOUNCE_MS = 140;
@@ -1772,7 +1913,7 @@
       try {
         const data = await fetchComTimeout(`${API_URL}?action=listar&key=${encodeURIComponent(API_KEY)}`, FETCH_TIMEOUT_MS);
         const raw = Array.isArray(data) ? data : (data.produtos || data.data || []);
-        const normalizados = raw.map(normalizar).filter(p => p.status === 'feito');
+        const normalizados = anotarMudancasPreco(raw.map(normalizar).filter(p => p.status === 'feito'));
         const nextHash = hashProdutos(normalizados);
 
         salvarCacheProdutos(normalizados, nextHash);
@@ -1843,7 +1984,10 @@
         p.categoria,
         p.status,
         p.urgente,
-        p.descontoAleatorio
+        p.descontoAleatorio,
+        p.precoMudanca?.tipo || '',
+        p.precoMudanca?.anterior || '',
+        p.precoMudanca?.atual || ''
       ].join('|')).join('¬');
 
       for (let i = 0; i < str.length; i++) {
@@ -1851,6 +1995,66 @@
         hash = Math.imul(hash, 16777619);
       }
       return (hash >>> 0).toString(36);
+    }
+
+
+    function produtoKey(p) {
+      return String(p.id || p.link || p.titulo || '').trim();
+    }
+
+    function lerHistoricoPrecos() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(PRICE_HISTORY_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function salvarHistoricoPrecos(hist) {
+      try {
+        localStorage.setItem(PRICE_HISTORY_KEY, JSON.stringify(hist));
+      } catch (e) {
+        // Se o navegador negar espaço, seguimos sem o marcador de histórico.
+      }
+    }
+
+    function anotarMudancasPreco(lista) {
+      const hist = lerHistoricoPrecos();
+      const agora = Date.now();
+      const out = lista.map(p => {
+        const key = produtoKey(p);
+        const atual = pNum(p);
+        const anterior = key && hist[key] ? Number(hist[key].precoNum || 0) : 0;
+        const clone = { ...p };
+
+        if (key && anterior > 0 && atual > 0 && Math.abs(atual - anterior) >= 0.01) {
+          const delta = atual - anterior;
+          const pct = anterior ? (delta / anterior) * 100 : 0;
+          clone.precoMudanca = {
+            tipo: delta < 0 ? 'queda' : 'alta',
+            anterior,
+            atual,
+            delta,
+            pct,
+            detectadoEm: agora
+          };
+        }
+
+        if (key && atual > 0) {
+          hist[key] = {
+            precoNum: atual,
+            precoFmt: fmt(atual),
+            titulo: p.titulo || '',
+            updatedAt: agora
+          };
+        }
+
+        return clone;
+      });
+
+      salvarHistoricoPrecos(hist);
+      return out;
     }
 
     function normalizar(p) {
@@ -1996,6 +2200,18 @@
       return decimals ? value.toFixed(decimals) : Math.floor(value);
     }
 
+
+    function precoMudancaHtml(p) {
+      const m = p && p.precoMudanca;
+      if (!m || !m.tipo) return '';
+      const pctAbs = Math.abs(Number(m.pct || 0));
+      const pct = pctAbs >= 0.1 ? `${pctAbs.toFixed(1).replace('.', ',')}%` : '';
+      if (m.tipo === 'queda') {
+        return `<span class="price-change drop">🔥 Baixou ${pct ? pct + ' ' : ''}desde a última visita</span>`;
+      }
+      return `<span class="price-change rise">↗ Preço subiu ${pct ? pct + ' ' : ''}desde a última visita</span>`;
+    }
+
     function cardHtml(p, i) {
       const img = p.imagem || 'https://placehold.co/400x400/F7F2E9/D48D5E?text=Sem+Imagem';
       const title = esc(p.titulo || 'Produto Incrível');
@@ -2004,11 +2220,16 @@
 
       // FIX BUG 1: removido Math.random() — determinístico e 100% confiável
       // FIX BUG 3: adicionado .trim() na comparação
+      const priceChange = p.precoMudanca || null;
       const hasDesconto = p.descontoAleatorio.trim() === 'sim';
       let precoAntigo = '';
-      if (hasDesconto && precoAtualNum > 0) {
+      if (priceChange?.tipo === 'queda' && Number(priceChange.anterior || 0) > precoAtualNum) {
+        precoAntigo = fmt(priceChange.anterior);
+      } else if (hasDesconto && precoAtualNum > 0) {
         precoAntigo = fmt(precoAtualNum * 1.2);
       }
+      const priceChangeHtml = precoMudancaHtml(p);
+      const dealBadge = priceChange?.tipo === 'queda' ? '<span class="deal-badge">↓ Preço caiu</span>' : '';
 
       const preco = fmt(p.preco);
       const cat = esc(p.categoria);
@@ -2028,6 +2249,7 @@
           <div class="card-img">
             <img src="${img}" alt="${title}" loading="lazy" decoding="async" ${i < 4 ? 'fetchpriority="high"' : ''} onerror="this.src='https://placehold.co/400x400/F7F2E9/D48D5E?text=Indisponível'">
             ${cat ? `<span class="cat-tag">${cat}</span>` : ''}
+            ${dealBadge}
           </div>
           <div class="card-body">
             <div class="card-rating">
@@ -2039,6 +2261,7 @@
               <span class="card-price">${preco}</span>
               ${precoAntigo ? `<span class="price-old">${precoAntigo}</span>` : ''}
             </div>
+            ${priceChangeHtml}
 
             ${isHot ? `
               <span class="scarcity-text">🔥 Restam poucas unidades!</span>
@@ -2048,7 +2271,7 @@
             ` : ''}
 
             <a class="btn-buy" href="${link}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
-              Eu Quero! 🛒
+              Comprar agora 🛒
             </a>
           </div>
         </article>`;
@@ -2064,6 +2287,22 @@
 
       document.getElementById('modalTitle').textContent = p.titulo || 'Produto sem título';
       document.getElementById('modalPrice').textContent = fmt(p.preco);
+
+      const modalChange = document.getElementById('modalPriceChange');
+      if (modalChange) {
+        modalChange.className = 'modal-price-change';
+        modalChange.textContent = '';
+        const m = p.precoMudanca;
+        if (m?.tipo) {
+          const pctAbs = Math.abs(Number(m.pct || 0));
+          const pct = pctAbs >= 0.1 ? `${pctAbs.toFixed(1).replace('.', ',')}%` : '';
+          modalChange.classList.add(m.tipo === 'queda' ? 'drop' : 'rise');
+          modalChange.textContent = m.tipo === 'queda'
+            ? `🔥 Preço caiu ${pct ? pct + ' ' : ''}desde a última visita`
+            : `↗ Preço subiu ${pct ? pct + ' ' : ''}desde a última visita`;
+        }
+      }
+
       document.getElementById('modalLink').href = p.link || '#';
       document.getElementById('modal').classList.add('open');
       document.body.style.overflow = 'hidden';

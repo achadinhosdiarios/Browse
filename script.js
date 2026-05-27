@@ -50,54 +50,65 @@ const SEARCH_DEBOUNCE_MS = 90;
 
 let db = [], visible = [], catAtual = 'todos', sortAtual = 'recente';
 let homeListMode = '';
-let currentHash = '', lastRenderKey = '', filtroTimer = null;
+let currentHash = '', lastRenderKey = '', lastHomeRenderKey = '', filtroTimer = null;
+let isLoadingProdutos = false, refreshResetTimer = null;
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 async function carregar(forceNetwork = false) {
-  const cache = lerCacheProdutos();
-
-  if (!forceNetwork && cache?.data?.length) {
-    db = cache.data;
-    currentHash = cache.hash || hashProdutos(db);
-    montarFiltros();
-    aplicarFiltros();
-    updateHomeStats(cache.savedAt);
-  } else if (!db.length) {
-    renderSkeleton();
+  if (isLoadingProdutos) {
+    if (forceNetwork) setRefreshState('loading', 'Sincronização em andamento');
+    return;
   }
 
-  setRefreshState(forceNetwork ? 'loading' : 'idle');
+  isLoadingProdutos = true;
+  const cache = lerCacheProdutos();
 
   try {
+    if (!forceNetwork && cache?.data?.length) {
+      db = cache.data;
+      currentHash = cache.hash || hashProdutos(db);
+      montarFiltros();
+      aplicarFiltros();
+      updateHomeStats(cache.savedAt);
+    } else if (!db.length) {
+      renderSkeleton();
+    }
+
+    setRefreshState(forceNetwork ? 'loading' : 'idle');
+
     const data = await fetchComTimeout(`${API_URL}?action=listar&key=${encodeURIComponent(API_KEY)}&t=${Date.now()}`, FETCH_TIMEOUT_MS);
     const raw = Array.isArray(data) ? data : (data.produtos || data.data || []);
     const normalizados = anotarMudancasPreco(raw.map(normalizar).filter(p => p.status === 'feito'));
     const nextHash = hashProdutos(normalizados);
-    const changed = nextHash !== currentHash || forceNetwork;
+    const changed = nextHash !== currentHash;
 
     salvarCacheProdutos(normalizados, nextHash);
 
     if (changed) {
       db = normalizados;
       currentHash = nextHash;
+      lastHomeRenderKey = '';
       montarFiltros();
       aplicarFiltros(true);
     }
 
     updateHomeStats(Date.now());
-    setRefreshState('done', changed && forceNetwork ? 'Novidades verificadas' : 'Tudo atualizado');
+    setRefreshState('done', changed ? 'Novidades verificadas' : 'Tudo atualizado');
   } catch (e) {
     console.error(e);
     setRefreshState('error');
     if (!cache?.data?.length && !db.length) {
-      document.getElementById('grid').innerHTML = `
+      const grid = document.getElementById('grid');
+      if (grid) grid.innerHTML = `
       <div class="state-box">
         <div class="ico">💔</div>
         <h3>Ops, algo deu errado</h3>
         <p>Não foi possível conectar ao banco de achadinhos. Tente recarregar a página.</p>
       </div>`;
     }
+  } finally {
+    isLoadingProdutos = false;
   }
 }
 
@@ -533,15 +544,20 @@ function getPromotionProducts(limit = 10) {
     .slice(0, limit);
 }
 
-function renderHomeShowcases() {
+function renderHomeShowcases(forceRender = false) {
   const promotions = getPromotionProducts(10);
   const recommended = getRecommendedProducts(10);
+  const homeRenderKey = `${currentHash}|${promotions.map(({ product, index }) => produtoKey(product) || index).join(',')}|${recommended.map(({ product, index }) => produtoKey(product) || index).join(',')}`;
+
+  if (!forceRender && homeRenderKey === lastHomeRenderKey) return;
+  lastHomeRenderKey = homeRenderKey;
+
   fillHomeRail('homePromotionsRail', promotions, 'Nenhuma promoção marcada na planilha ainda.');
   fillHomeRail('homeRecommendedRail', recommended, 'Nenhum achadinho disponível no momento.');
 }
 
 function renderHomeCategories() {
-  renderHomeShowcases();
+  renderHomeShowcases(true);
 }
 
 function openModalFromHome(index) {
@@ -550,22 +566,47 @@ function openModalFromHome(index) {
 }
 
 
+const REFRESH_SVG = {
+  idle: '<svg viewBox="0 0 24 24" focusable="false"><path d="M20 11a8.1 8.1 0 0 0-14.25-5.2L4 7.55V3H2v8h8V9H5.45l1.72-1.72A6.08 6.08 0 0 1 18 11h2Zm-2.75 5.72A6.08 6.08 0 0 1 6 13H4a8.1 8.1 0 0 0 14.25 5.2L20 16.45V21h2v-8h-8v2h4.55l-1.3 1.72Z"></path></svg>',
+  done: '<svg viewBox="0 0 24 24" focusable="false"><path d="M9.55 17.6 4.9 12.95l1.42-1.42 3.23 3.23 8.13-8.13 1.42 1.42-9.55 9.55Z"></path></svg>',
+  error: '<svg viewBox="0 0 24 24" focusable="false"><path d="m6.4 19-1.4-1.4 5.6-5.6L5 6.4 6.4 5l5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19Z"></path></svg>'
+};
+
+function setRefreshIcon(state = 'idle') {
+  const icon = document.getElementById('refreshIcon');
+  if (!icon) return;
+  icon.innerHTML = REFRESH_SVG[state] || REFRESH_SVG.idle;
+}
+
 function setRefreshState(state, text = '') {
   const btn = document.getElementById('refreshBtn');
   const title = document.getElementById('refreshTitle');
   const sub = document.getElementById('refreshSub');
   if (!btn || !title || !sub) return;
+
+  window.clearTimeout(refreshResetTimer);
   btn.classList.toggle('loading', state === 'loading');
+  btn.classList.toggle('is-done', state === 'done');
+  btn.classList.toggle('is-error', state === 'error');
+  btn.disabled = state === 'loading';
+  btn.setAttribute('aria-busy', String(state === 'loading'));
+
   if (state === 'loading') {
-    title.textContent = 'Verificando ofertas';
+    setRefreshIcon('idle');
+    title.textContent = text || 'Verificando ofertas';
     sub.textContent = 'Buscando novidades no banco de dados';
   } else if (state === 'done') {
+    setRefreshIcon('done');
     title.textContent = text || 'Tudo atualizado';
     sub.textContent = 'Promoções e recomendados foram sincronizados';
+    refreshResetTimer = window.setTimeout(() => setRefreshState('idle'), 1600);
   } else if (state === 'error') {
+    setRefreshIcon('error');
     title.textContent = 'Tentar novamente';
     sub.textContent = 'A conexão falhou, mas o cache continua disponível';
+    refreshResetTimer = window.setTimeout(() => setRefreshState('idle'), 2200);
   } else {
+    setRefreshIcon('idle');
     title.textContent = 'Atualizar vitrine';
     sub.textContent = 'Verificar promoções e recomendados agora';
   }
@@ -626,7 +667,7 @@ function aplicarFiltros(forceRender = false) {
     visible = db;
     if (countEl) countEl.textContent = db.length;
     if (grid) grid.innerHTML = '';
-    renderHomeShowcases();
+    renderHomeShowcases(forceRender);
     updateHomeStats();
     return;
   }
@@ -1095,7 +1136,6 @@ function cardHtml(p, i) {
 function fillHomeRail(railId, products, emptyText = 'Carregando achadinhos...') {
   const rail = document.getElementById(railId);
   if (!rail) return;
-  rail.innerHTML = '';
 
   if (!products.length) {
     rail.innerHTML = `<div class="home-row-empty">${esc(emptyText)}</div>`;
@@ -1112,7 +1152,7 @@ function fillHomeRail(railId, products, emptyText = 'Carregando achadinhos...') 
     btn.addEventListener('click', () => openModalFromHome(index));
     fragment.appendChild(btn);
   });
-  rail.appendChild(fragment);
+  rail.replaceChildren(fragment);
 }
 
 function openModal(i) {

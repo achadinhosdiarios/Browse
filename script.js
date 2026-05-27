@@ -844,7 +844,7 @@ function updateHomeStats(timestamp = Date.now()) {
   const prices = db.map(p => pNum(p)).filter(n => Number.isFinite(n) && n > 0);
   const total = db.length;
   const catsCount = new Set(db.map(p => p.categoria).filter(Boolean)).size;
-  const drops = db.filter(p => p.precoMudanca?.tipo === 'queda').length;
+  const drops = db.filter(p => p.precoMudanca?.tipo === 'queda' || isSimFlag(p.descontoAleatorio)).length;
   const hot = db.filter(p => String(p.urgente || '').trim() === 'sim').length;
   const min = prices.length ? Math.min(...prices) : 0;
   const max = prices.length ? Math.max(...prices) : 0;
@@ -963,62 +963,75 @@ function productStockInfo(p) {
 
 function stockHtml(p, cls = 'stock-pill') {
   const stock = productStockInfo(p);
-  if (stock.state === 'ok') return '';
-  const variant = stock.state === 'unavailable' ? 'unavailable' : 'low';
-  const icon = stock.state === 'unavailable' ? '⛔' : '⚠️';
-  return `<span class="${cls} ${variant}">${icon} ${esc(stock.label)}</span>`;
+  if (stock.state !== 'unavailable') return '';
+  return `<span class="${cls} unavailable">⛔ ${esc(stock.label)}</span>`;
 }
+
+function isSimFlag(value) {
+  const normalized = normalizeStr(value);
+  return normalized === 'sim' || normalized === 's' || normalized === 'yes' || normalized === 'true' || normalized === 'on' || normalized === '1';
+}
+
+function descontoAleatorioInfo(p, fallback = '') {
+  const active = isSimFlag(p?.descontoAleatorio);
+  const percent = active ? Number(numeroDeterministico(`${productSeed(p, fallback)}:desconto-visual`, 10, 28, 0)) : 0;
+  const current = pNum(p);
+  return {
+    active,
+    percent,
+    oldPrice: active && current > 0 && percent > 0 ? fmt(current / (1 - (percent / 100))) : ''
+  };
+}
+
+function isUrgentProduct(p) {
+  return isSimFlag(p?.urgente);
+}
+
 
 function cardHtml(p, i) {
   const img = productImages(p)[0] || 'https://placehold.co/400x400/F7F2E9/D48D5E?text=Sem+Imagem';
   const title = esc(p.titulo || 'Produto Incrível');
-  const precoAtualNum = pNum({ preco: p.preco }) || 0;
+  const precoAtualNum = pNum(p) || 0;
   const priceChange = p.precoMudanca || null;
-  const hasDesconto = String(p.descontoAleatorio || '').trim() === 'sim';
+  const desconto = descontoAleatorioInfo(p, i);
   const stock = productStockInfo(p);
   const unavailable = stock.state === 'unavailable';
+  const isHot = isUrgentProduct(p) && !unavailable;
   let precoAntigo = '';
+
   if (priceChange?.tipo === 'queda' && Number(priceChange.anterior || 0) > precoAtualNum) {
     precoAntigo = fmt(priceChange.anterior);
-  } else if (hasDesconto && precoAtualNum > 0) {
-    precoAntigo = fmt(precoAtualNum * 1.2);
+  } else if (desconto.oldPrice) {
+    precoAntigo = desconto.oldPrice;
   }
+
   const priceChangeHtml = precoMudancaHtml(p);
-  const dealBadge = priceChange?.tipo === 'queda' ? '<span class="deal-badge">↓ Preço caiu</span>' : '';
+  const imageDealBadge = priceChange?.tipo === 'queda'
+    ? '<span class="deal-badge">↓ Preço caiu</span>'
+    : (desconto.active ? `<span class="deal-badge random-discount-badge">-${desconto.percent}% OFF</span>` : '');
   const preco = fmt(p.preco);
-  const cat = esc(p.categoria);
   const { rating, sold } = productSocialProof(p, i);
-  const stableSeed = productSeed(p, i);
-  const isHot = String(p.urgente || '').trim() === 'sim' && !unavailable;
-  const barWidth = numeroDeterministico(`${stableSeed}:bar`, 10, 90);
 
   return `
-    <article class="card${unavailable ? ' is-unavailable' : ''}" data-open-index="${i}" tabindex="0" role="button">
+    <article class="card${unavailable ? ' is-unavailable' : ''}${isHot ? ' has-low-stock' : ''}${desconto.active ? ' has-random-discount' : ''}" data-open-index="${i}" tabindex="0" role="button">
       <div class="card-img">
         <img src="${esc(img)}" alt="${title}" draggable="false" loading="lazy" decoding="async" ${i < 4 ? 'fetchpriority="high"' : ''} data-fallback="product">
-        ${cat ? `<span class="cat-tag">${cat}</span>` : ''}
-        ${unavailable ? '<span class="stock-preview-badge">Esgotado</span>' : dealBadge}
+        ${isHot ? '<span class="cat-tag low-stock-tag">Estoque Baixo!</span>' : ''}
+        ${unavailable ? '<span class="stock-preview-badge">Esgotado</span>' : imageDealBadge}
       </div>
       <div class="card-body">
         <div class="card-rating">
           <span class="stars">★★★★★</span> ${rating} (${sold} vendidos)
         </div>
         <div class="card-title" title="${title}">${title}</div>
+        <span class="product-card-note">👆 Clique para ver mais detalhes</span>
+        ${stockHtml(p)}
 
         <div class="price-row">
           <span class="card-price">${preco}</span>
           ${precoAntigo ? `<span class="price-old">${precoAntigo}</span>` : ''}
         </div>
-        <span class="product-card-note">👆 Clique para ver mais detalhes</span>
-        ${priceChangeHtml}
-        ${stockHtml(p)}
-
-        ${isHot ? `
-          <span class="scarcity-text">🔥 Restam poucas unidades!</span>
-          <div class="scarcity-bar-wrap">
-            <div class="scarcity-bar" style="width: ${barWidth}%"></div>
-          </div>
-        ` : ''}
+        <div class="price-change-slot">${priceChangeHtml}</div>
 
         <button class="btn-buy btn-access${unavailable ? ' is-unavailable' : ''}" type="button" data-open-index="${i}" aria-label="${unavailable ? 'Produto esgotado. Ver detalhes de' : 'Acessar detalhes de'} ${title}">
           <strong>${unavailable ? 'Esgotado' : 'Acessar'}</strong>
@@ -1042,21 +1055,29 @@ function fillHomeRail(railId, products) {
     const { rating, sold } = productSocialProof(product, index);
     const stock = productStockInfo(product);
     const unavailable = stock.state === 'unavailable';
+    const isHot = isUrgentProduct(product) && !unavailable;
+    const desconto = descontoAleatorioInfo(product, index);
+    const priceDrop = product.precoMudanca?.tipo === 'queda';
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `home-mini-card${unavailable ? ' is-unavailable' : ''}`;
+    btn.className = `home-mini-card${unavailable ? ' is-unavailable' : ''}${isHot ? ' has-low-stock' : ''}${desconto.active ? ' has-random-discount' : ''}`;
     btn.innerHTML = `
       <span class="home-mini-img">
         <img src="${esc(img)}" alt="${esc(product.titulo || 'Produto')}" draggable="false" loading="${position < 3 ? 'eager' : 'lazy'}" decoding="async" data-fallback="product">
-        ${product.categoria ? `<span class="home-mini-tag">${esc(product.categoria)}</span>` : ''}
+        ${isHot ? '<span class="home-mini-tag low-stock-tag">Estoque Baixo!</span>' : ''}
         ${unavailable ? '<span class="stock-preview-badge">Esgotado</span>' : ''}
+        ${!unavailable && priceDrop ? '<span class="deal-badge home-discount-badge">↓ Caiu</span>' : ''}
+        ${!unavailable && !priceDrop && desconto.active ? `<span class="deal-badge home-discount-badge">-${desconto.percent}% OFF</span>` : ''}
       </span>
       <span class="home-mini-body">
         <span class="home-mini-rating"><span class="stars">★★★★★</span> ${rating} · ${sold} vendidos</span>
         <strong class="home-mini-title">${esc(product.titulo || 'Produto sem título')}</strong>
-        <span class="home-mini-price">${fmt(product.preco)}</span>
         <span class="home-mini-note">👆 Clique para ver mais detalhes</span>
         ${stockHtml(product, 'stock-pill home-stock-pill')}
+        <span class="home-mini-price-row">
+          <span class="home-mini-price">${fmt(product.preco)}</span>
+          ${desconto.oldPrice ? `<span class="home-mini-old">${desconto.oldPrice}</span>` : ''}
+        </span>
         <span class="home-mini-action${unavailable ? ' is-unavailable' : ''}"><strong>${unavailable ? 'Esgotado' : 'Acessar'}</strong></span>
       </span>
     `;
@@ -1072,11 +1093,21 @@ function openModal(i) {
   const unavailable = stock.state === 'unavailable';
   renderModalImages(productImages(p), p.titulo || 'Produto');
 
+  const desconto = descontoAleatorioInfo(p, i);
   const cat = document.getElementById('modalCat');
   if (cat) {
     cat.textContent = p.categoria || '';
-    cat.style.display = p.categoria ? 'inline-block' : 'none';
+    cat.style.display = p.categoria ? 'inline-flex' : 'none';
   }
+
+  const discountTag = document.getElementById('modalDiscountTag');
+  if (discountTag) {
+    discountTag.hidden = !desconto.active;
+    discountTag.textContent = desconto.active ? `-${desconto.percent}% OFF` : '';
+  }
+
+  const modalTags = document.getElementById('modalTags');
+  if (modalTags) modalTags.hidden = !p.categoria && !desconto.active;
 
   const titleEl = document.getElementById('modalTitle');
   if (titleEl) titleEl.textContent = p.titulo || 'Produto sem título';
@@ -1086,7 +1117,19 @@ function openModal(i) {
   if (modalRating) modalRating.innerHTML = `<span class="stars">★★★★★</span> ${rating} · ${sold} vendidos${unavailable ? ' · Esgotado' : ''}`;
 
   const priceEl = document.getElementById('modalPrice');
-  if (priceEl) priceEl.textContent = fmt(p.preco);
+  if (priceEl) {
+    const precoAtualNum = pNum(p) || 0;
+    const m = p.precoMudanca;
+    let modalOldPrice = '';
+    if (m?.tipo === 'queda' && Number(m.anterior || 0) > precoAtualNum) {
+      modalOldPrice = fmt(m.anterior);
+    } else if (desconto.oldPrice) {
+      modalOldPrice = desconto.oldPrice;
+    }
+    priceEl.innerHTML = `
+      <span class="modal-current-price">${esc(fmt(p.preco))}</span>
+      ${modalOldPrice ? `<span class="modal-old-price">${esc(modalOldPrice)}</span>` : ''}`;
+  }
 
   let modalStock = document.getElementById('modalStock');
   if (!modalStock) {
@@ -1096,10 +1139,10 @@ function openModal(i) {
     if (changeEl && changeEl.parentNode) changeEl.parentNode.insertBefore(modalStock, changeEl.nextSibling);
   }
   if (modalStock) {
-    const showStock = stock.state !== 'ok';
+    const showStock = stock.state === 'unavailable';
     modalStock.hidden = !showStock;
-    modalStock.className = `modal-stock ${stock.state === 'unavailable' ? 'unavailable' : 'low'}`;
-    modalStock.textContent = showStock ? `${stock.state === 'unavailable' ? '⛔' : '⚠️'} ${stock.label}` : '';
+    modalStock.className = 'modal-stock unavailable';
+    modalStock.textContent = showStock ? `⛔ ${stock.label}` : '';
   }
 
   const modalChange = document.getElementById('modalPriceChange');

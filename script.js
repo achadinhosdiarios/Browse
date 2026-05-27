@@ -272,6 +272,34 @@ function productImages(p) {
 
 let modalImages = [];
 let modalImageIndex = 0;
+let modalScrollY = 0;
+
+function lockPageScrollForModal() {
+  if (document.body.classList.contains('modal-open')) return;
+  modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.documentElement.classList.add('modal-open');
+  document.body.classList.add('modal-open');
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${modalScrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+
+function unlockPageScrollForModal() {
+  if (!document.body.classList.contains('modal-open')) return;
+  const top = document.body.style.top;
+  const restoreY = modalScrollY || Math.abs(parseInt(top || '0', 10)) || 0;
+  document.documentElement.classList.remove('modal-open');
+  document.body.classList.remove('modal-open');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, restoreY);
+  modalScrollY = 0;
+}
 
 function pNum(p) {
   if (!p.preco) return 0;
@@ -474,8 +502,8 @@ function modalImageStep(direction) {
 }
 
 function closeModal() {
-  document.getElementById('modal').classList.remove('open');
-  document.body.classList.remove('modal-open');
+  document.getElementById('modal')?.classList.remove('open');
+  unlockPageScrollForModal();
   toggleImageZoom(false);
 }
 
@@ -1176,7 +1204,7 @@ function openModal(i) {
   }
 
   document.getElementById('modal')?.classList.add('open');
-  document.body.classList.add('modal-open');
+  lockPageScrollForModal();
 }
 
 function bindStaticEvents() {

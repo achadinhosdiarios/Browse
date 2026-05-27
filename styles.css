@@ -5510,3 +5510,45 @@
         display: none !important
       }
     }
+
+/* ── CORREÇÃO FINAL: menus de filtro acima da vitrine ── */
+body[data-view="explorer"] #view-explorer {
+  position: relative;
+  z-index: 9000;
+  overflow: visible !important;
+}
+
+body[data-view="explorer"] .explorer-header,
+body[data-view="explorer"] .explorer-toolbar,
+body[data-view="explorer"] .select-row,
+body[data-view="explorer"] .custom-select {
+  position: relative;
+  overflow: visible !important;
+}
+
+body[data-view="explorer"] .explorer-toolbar {
+  z-index: 9000;
+}
+
+body[data-view="explorer"] .select-row {
+  z-index: 9100;
+}
+
+body[data-view="explorer"] .custom-select {
+  z-index: 9200;
+}
+
+body[data-view="explorer"] .custom-select.open {
+  z-index: 9500 !important;
+}
+
+body[data-view="explorer"] .custom-select.open .select-menu {
+  z-index: 9600 !important;
+}
+
+body[data-view="explorer"] .grid-section,
+body[data-view="explorer"] .product-grid,
+body[data-view="explorer"] .card {
+  position: relative;
+  z-index: 1;
+}

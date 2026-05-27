@@ -1016,55 +1016,72 @@ function isUrgentProduct(p) {
 }
 
 
-function cardHtml(p, i) {
+function produtoCardVisualInfo(p, fallback = '', position = 0) {
   const img = productImages(p)[0] || 'https://placehold.co/400x400/F7F2E9/D48D5E?text=Sem+Imagem';
-  const title = esc(p.titulo || 'Produto Incrível');
-  const precoAtualNum = pNum(p) || 0;
-  const priceChange = p.precoMudanca || null;
-  const desconto = descontoAleatorioInfo(p, i);
+  const title = esc(p.titulo || 'Produto sem título');
   const stock = productStockInfo(p);
   const unavailable = stock.state === 'unavailable';
   const isHot = isUrgentProduct(p) && !unavailable;
-  let precoAntigo = '';
+  const desconto = descontoAleatorioInfo(p, fallback);
+  const priceDrop = p.precoMudanca?.tipo === 'queda';
+  const precoAtualNum = pNum(p) || 0;
+  let oldPrice = '';
 
-  if (priceChange?.tipo === 'queda' && Number(priceChange.anterior || 0) > precoAtualNum) {
-    precoAntigo = fmt(priceChange.anterior);
+  if (priceDrop && Number(p.precoMudanca?.anterior || 0) > precoAtualNum) {
+    oldPrice = fmt(p.precoMudanca.anterior);
   } else if (desconto.oldPrice) {
-    precoAntigo = desconto.oldPrice;
+    oldPrice = desconto.oldPrice;
   }
 
-  const priceChangeHtml = precoMudancaHtml(p);
-  const imageDealBadge = priceChange?.tipo === 'queda'
-    ? '<span class="deal-badge">↓ Preço caiu</span>'
-    : (desconto.active ? `<span class="deal-badge random-discount-badge">-${desconto.percent}% OFF</span>` : '');
-  const preco = fmt(p.preco);
-  const { rating, sold } = productSocialProof(p, i);
+  return {
+    img,
+    title,
+    stock,
+    unavailable,
+    isHot,
+    desconto,
+    priceDrop,
+    oldPrice,
+    rating: productSocialProof(p, fallback),
+    eager: position < 4
+  };
+}
+
+function produtoCardClasses(base, info) {
+  return `${base}${info.unavailable ? ' is-unavailable' : ''}${info.isHot ? ' has-low-stock' : ''}${info.desconto.active ? ' has-random-discount' : ''}`;
+}
+
+function produtoCardInnerHtml(p, index, position = 0) {
+  const info = produtoCardVisualInfo(p, index, position);
+  const { rating, sold } = info.rating;
+  const discountBadge = !info.unavailable && info.priceDrop
+    ? '<span class="deal-badge home-discount-badge">↓ Caiu</span>'
+    : (!info.unavailable && info.desconto.active ? `<span class="deal-badge home-discount-badge">-${info.desconto.percent}% OFF</span>` : '');
 
   return `
-    <article class="card${unavailable ? ' is-unavailable' : ''}${isHot ? ' has-low-stock' : ''}${desconto.active ? ' has-random-discount' : ''}" data-open-index="${i}" tabindex="0" role="button">
-      <div class="card-img">
-        <img src="${esc(img)}" alt="${title}" draggable="false" loading="lazy" decoding="async" ${i < 4 ? 'fetchpriority="high"' : ''} data-fallback="product">
-        ${isHot ? '<span class="cat-tag low-stock-tag">Estoque Baixo!</span>' : ''}
-        ${unavailable ? '<span class="stock-preview-badge">Esgotado</span>' : imageDealBadge}
-      </div>
-      <div class="card-body">
-        <div class="card-rating">
-          <span class="stars">★★★★★</span> ${rating} (${sold} vendidos)
-        </div>
-        <div class="card-title" title="${title}">${title}</div>
-        <span class="product-card-note">👆 Clique para ver mais detalhes</span>
-        ${stockHtml(p)}
+      <span class="home-mini-img">
+        <img src="${esc(info.img)}" alt="${info.title}" draggable="false" loading="${info.eager ? 'eager' : 'lazy'}" decoding="async" ${info.eager ? 'fetchpriority="high"' : ''} data-fallback="product">
+        ${info.isHot ? '<span class="home-mini-tag low-stock-tag">Estoque Baixo!</span>' : ''}
+        ${info.unavailable ? '<span class="stock-preview-badge">Esgotado</span>' : discountBadge}
+      </span>
+      <span class="home-mini-body">
+        <span class="home-mini-rating"><span class="stars">★★★★★</span> ${rating} · ${sold} vendidos</span>
+        <strong class="home-mini-title" title="${info.title}">${info.title}</strong>
+        <span class="home-mini-note">👆 Clique para ver mais detalhes</span>
+        ${stockHtml(p, 'stock-pill home-stock-pill')}
+        <span class="home-mini-price-row">
+          <span class="home-mini-price">${fmt(p.preco)}</span>
+          ${info.oldPrice ? `<span class="home-mini-old">${info.oldPrice}</span>` : ''}
+        </span>
+        <span class="home-mini-action${info.unavailable ? ' is-unavailable' : ''}"><strong>${info.unavailable ? 'Esgotado' : 'Acessar'}</strong></span>
+      </span>`;
+}
 
-        <div class="price-row">
-          <span class="card-price">${preco}</span>
-          ${precoAntigo ? `<span class="price-old">${precoAntigo}</span>` : ''}
-        </div>
-        <div class="price-change-slot">${priceChangeHtml}</div>
-
-        <button class="btn-buy btn-access${unavailable ? ' is-unavailable' : ''}" type="button" data-open-index="${i}" aria-label="${unavailable ? 'Produto esgotado. Ver detalhes de' : 'Acessar detalhes de'} ${title}">
-          <strong>${unavailable ? 'Esgotado' : 'Acessar'}</strong>
-        </button>
-      </div>
+function cardHtml(p, i) {
+  const info = produtoCardVisualInfo(p, i, i);
+  return `
+    <article class="${produtoCardClasses('card home-mini-card catalog-card', info)}" data-open-index="${i}" tabindex="0" role="button" aria-label="${info.unavailable ? 'Produto esgotado. Ver detalhes de' : 'Ver detalhes de'} ${info.title}">
+      ${produtoCardInnerHtml(p, i, i)}
     </article>`;
 }
 
@@ -1078,40 +1095,17 @@ function fillHomeRail(railId, products) {
     return;
   }
 
+  const fragment = document.createDocumentFragment();
   products.forEach(({ product, index }, position) => {
-    const img = productImages(product)[0] || 'https://placehold.co/400x400/F7F2E9/D48D5E?text=Sem+Imagem';
-    const { rating, sold } = productSocialProof(product, index);
-    const stock = productStockInfo(product);
-    const unavailable = stock.state === 'unavailable';
-    const isHot = isUrgentProduct(product) && !unavailable;
-    const desconto = descontoAleatorioInfo(product, index);
-    const priceDrop = product.precoMudanca?.tipo === 'queda';
+    const info = produtoCardVisualInfo(product, index, position);
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `home-mini-card${unavailable ? ' is-unavailable' : ''}${isHot ? ' has-low-stock' : ''}${desconto.active ? ' has-random-discount' : ''}`;
-    btn.innerHTML = `
-      <span class="home-mini-img">
-        <img src="${esc(img)}" alt="${esc(product.titulo || 'Produto')}" draggable="false" loading="${position < 3 ? 'eager' : 'lazy'}" decoding="async" data-fallback="product">
-        ${isHot ? '<span class="home-mini-tag low-stock-tag">Estoque Baixo!</span>' : ''}
-        ${unavailable ? '<span class="stock-preview-badge">Esgotado</span>' : ''}
-        ${!unavailable && priceDrop ? '<span class="deal-badge home-discount-badge">↓ Caiu</span>' : ''}
-        ${!unavailable && !priceDrop && desconto.active ? `<span class="deal-badge home-discount-badge">-${desconto.percent}% OFF</span>` : ''}
-      </span>
-      <span class="home-mini-body">
-        <span class="home-mini-rating"><span class="stars">★★★★★</span> ${rating} · ${sold} vendidos</span>
-        <strong class="home-mini-title">${esc(product.titulo || 'Produto sem título')}</strong>
-        <span class="home-mini-note">👆 Clique para ver mais detalhes</span>
-        ${stockHtml(product, 'stock-pill home-stock-pill')}
-        <span class="home-mini-price-row">
-          <span class="home-mini-price">${fmt(product.preco)}</span>
-          ${desconto.oldPrice ? `<span class="home-mini-old">${desconto.oldPrice}</span>` : ''}
-        </span>
-        <span class="home-mini-action${unavailable ? ' is-unavailable' : ''}"><strong>${unavailable ? 'Esgotado' : 'Acessar'}</strong></span>
-      </span>
-    `;
+    btn.className = produtoCardClasses('home-mini-card', info);
+    btn.innerHTML = produtoCardInnerHtml(product, index, position);
     btn.addEventListener('click', () => openModalFromHome(index));
-    rail.appendChild(btn);
+    fragment.appendChild(btn);
   });
+  rail.appendChild(fragment);
 }
 
 function openModal(i) {

@@ -514,6 +514,8 @@
       border: 1px solid var(--border-glass);
       cursor: pointer;
       transition: transform .4s var(--spring), box-shadow .4s var(--spring), border-color 0.3s;
+      content-visibility: auto;
+      contain-intrinsic-size: 390px;
     }
 
     .card::before {
@@ -1062,6 +1064,17 @@
       color: var(--text);
       margin-bottom: .5rem;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
   </style>
 </head>
 
@@ -1248,29 +1261,111 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbwO7BQje-TFZ1IXTwAk69PR8kAe74hHb2KV4jY-iNLAUzv-cAbDO0aHiItO9goLMENnfw/exec";
     const API_KEY = "netinho2007";
 
+    const CACHE_VERSION = 'achadinhos_home_v2';
+    const CACHE_KEY = `${CACHE_VERSION}:produtos`;
+    const CACHE_TTL_MS = 10 * 60 * 1000;
+    const FETCH_TIMEOUT_MS = 12000;
+    const SEARCH_DEBOUNCE_MS = 140;
+
     let db = [], visible = [], catAtual = 'todos', sortAtual = 'recente';
+    let currentHash = '', lastRenderKey = '', filtroTimer = null;
 
     window.addEventListener('load', carregar);
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
     async function carregar() {
-      renderSkeleton();
-      try {
-        const res = await fetch(`${API_URL}?action=listar&key=${API_KEY}`);
-        const data = await res.json();
-        const raw = Array.isArray(data) ? data : (data.produtos || data.data || []);
-        db = raw.map(normalizar).filter(p => p.status === 'feito');
+      const cache = lerCacheProdutos();
+      if (cache?.data?.length) {
+        db = cache.data;
+        currentHash = cache.hash || hashProdutos(db);
         montarFiltros();
         aplicarFiltros();
+      } else {
+        renderSkeleton();
+      }
+
+      try {
+        const data = await fetchComTimeout(`${API_URL}?action=listar&key=${encodeURIComponent(API_KEY)}`, FETCH_TIMEOUT_MS);
+        const raw = Array.isArray(data) ? data : (data.produtos || data.data || []);
+        const normalizados = raw.map(normalizar).filter(p => p.status === 'feito');
+        const nextHash = hashProdutos(normalizados);
+
+        salvarCacheProdutos(normalizados, nextHash);
+
+        if (nextHash !== currentHash) {
+          db = normalizados;
+          currentHash = nextHash;
+          montarFiltros();
+          aplicarFiltros(true);
+        }
       } catch (e) {
-        document.getElementById('grid').innerHTML = `
+        console.error(e);
+        if (!cache?.data?.length) {
+          document.getElementById('grid').innerHTML = `
           <div class="state-box">
             <div class="ico">💔</div>
             <h3>Ops, algo deu errado</h3>
             <p>Não foi possível conectar ao banco de achadinhos. Tente recarregar a página.</p>
           </div>`;
-        console.error(e);
+        }
       }
+    }
+
+    async function fetchComTimeout(url, timeoutMs) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    function lerCacheProdutos() {
+      try {
+        const payload = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if (!payload || payload.version !== CACHE_VERSION || !Array.isArray(payload.data)) return null;
+        payload.stale = Date.now() - Number(payload.savedAt || 0) > CACHE_TTL_MS;
+        return payload;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function salvarCacheProdutos(data, hash) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          version: CACHE_VERSION,
+          savedAt: Date.now(),
+          hash,
+          data
+        }));
+      } catch (e) {
+        try { localStorage.removeItem(CACHE_KEY); } catch (_) { }
+      }
+    }
+
+    function hashProdutos(lista) {
+      let hash = 2166136261;
+      const str = lista.map(p => [
+        p.id,
+        p.titulo,
+        p.preco,
+        p.imagem,
+        p.link,
+        p.categoria,
+        p.status,
+        p.urgente,
+        p.descontoAleatorio
+      ].join('|')).join('¬');
+
+      for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(36);
     }
 
     function normalizar(p) {
@@ -1285,6 +1380,7 @@
 
       // FIX BUG 2: fallbacks explícitos para variações de nome de coluna vindas do Sheets
       return {
+        id: lk('ID'),
         titulo: lk('Título') || lk('Titulo'),
         preco: lk('Preço') || lk('Preco'),
         imagem: lk('Imagem'),
@@ -1303,7 +1399,12 @@
     function onSearchInput() {
       const val = document.getElementById('searchInput').value;
       document.getElementById('searchClear').classList.toggle('visible', val.length > 0);
-      aplicarFiltros();
+      agendarFiltros();
+    }
+
+    function agendarFiltros() {
+      clearTimeout(filtroTimer);
+      filtroTimer = setTimeout(() => aplicarFiltros(), SEARCH_DEBOUNCE_MS);
     }
 
     function clearSearch() {
@@ -1343,8 +1444,8 @@
       return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
     }
 
-    function aplicarFiltros() {
-      let lista = [...db];
+    function aplicarFiltros(forceRender = false) {
+      let lista = db;
 
       if (catAtual !== 'todos') {
         lista = lista.filter(p => p.categoria === catAtual);
@@ -1359,7 +1460,7 @@
       lista = ordenar(lista, sortAtual);
       visible = lista;
       document.getElementById('countNum').textContent = lista.length;
-      renderGrid(lista);
+      renderGrid(lista, forceRender);
     }
 
     function ordenar(lista, c) {
@@ -1380,8 +1481,12 @@
         </div>`).join('');
     }
 
-    function renderGrid(lista) {
+    function renderGrid(lista, forceRender = false) {
       const grid = document.getElementById('grid');
+      const renderKey = `${catAtual}|${sortAtual}|${normalizeStr(document.getElementById('searchInput').value)}|${lista.length}|${hashProdutos(lista)}`;
+      if (!forceRender && renderKey === lastRenderKey) return;
+      lastRenderKey = renderKey;
+
       if (!lista.length) {
         grid.innerHTML = `
           <div class="state-box">
@@ -1392,6 +1497,18 @@
         return;
       }
       grid.innerHTML = lista.map((p, i) => cardHtml(p, i)).join('');
+    }
+
+    function numeroDeterministico(seed, min, max, decimals = 0) {
+      let hash = 2166136261;
+      const str = String(seed || '');
+      for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      const normalized = (hash >>> 0) / 4294967295;
+      const value = min + normalized * (max - min);
+      return decimals ? value.toFixed(decimals) : Math.floor(value);
     }
 
     function cardHtml(p, i) {
@@ -1413,17 +1530,18 @@
       const link = p.link || '#';
       const delay = Math.min(i * 20, 200);
 
-      const rating = (4.5 + Math.random() * 0.5).toFixed(1);
-      const sold = Math.floor(Math.random() * 500) + 50;
+      const stableSeed = p.id || p.link || p.titulo || i;
+      const rating = numeroDeterministico(`${stableSeed}:rating`, 4.5, 5, 1);
+      const sold = numeroDeterministico(`${stableSeed}:sold`, 50, 550);
 
       // FIX BUG 3: adicionado .trim() na comparação
       const isHot = p.urgente.trim() === 'sim';
-      const barWidth = Math.floor(Math.random() * 80) + 10;
+      const barWidth = numeroDeterministico(`${stableSeed}:bar`, 10, 90);
 
       return `
         <article class="card" style="animation: smoothSlideRight 0.6s var(--spring) both; animation-delay:${delay}ms" onclick="openModal(${i})">
           <div class="card-img">
-            <img src="${img}" alt="${title}" loading="lazy" onerror="this.src='https://placehold.co/400x400/F7F2E9/D48D5E?text=Indisponível'">
+            <img src="${img}" alt="${title}" loading="lazy" decoding="async" ${i < 4 ? 'fetchpriority="high"' : ''} onerror="this.src='https://placehold.co/400x400/F7F2E9/D48D5E?text=Indisponível'">
             ${cat ? `<span class="cat-tag">${cat}</span>` : ''}
           </div>
           <div class="card-body">

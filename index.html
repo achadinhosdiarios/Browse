@@ -3,8 +3,10 @@
 <html data-view="home" lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="Achadinhos Diários - curadoria de ofertas e produtos úteis." name="description"/>
 <title>Achadinhos Diários</title>
+<meta name="theme-color" content="#FCFAF7"/>
 <link href="./src/favicon.webp" rel="icon" type="image/x-icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -16,7 +18,7 @@
 <header class="site-header">
 <div class="header-inner">
 <a aria-label="Ir para as informações do rodapé" class="logo page-brand-card" data-action="scroll-footer" href="#siteFooter">
-<img alt="Logo" class="logo-img" data-fallback="hide" decoding="async" src="./src/logo.webp"/>
+<img alt="Logo Achadinhos Diários" class="logo-img" data-fallback="hide" decoding="async" fetchpriority="high" src="./src/logo.webp"/>
 <span class="logo-meta">
 <strong class="logo-text">Achadinhos <em>Diários</em></strong>
 <small>Curadoria de ofertas</small>
@@ -32,7 +34,7 @@
 </div>
 </header>
 <main>
-<section class="tab-view active" id="view-home">
+<section class="tab-view active" id="view-home" aria-hidden="false">
 <div class="hero-panel">
 <div class="home-highlight">
 <div class="capsule-text-wrap hero-message-card">
@@ -41,23 +43,23 @@
 <p>Ofertas organizadas para compra rápida, com destaque para preço, categoria, avaliações e novidades
               verificadas direto do banco.</p>
 </div>
-<aside aria-label="Painel técnico dos achadinhos" class="home-stats-card technical-panel tech-pill-panel is-collapsed" id="technicalPanel">
+<aside aria-label="Painel técnico dos achadinhos" class="home-stats-card technical-panel tech-pill-panel" id="technicalPanel">
 <div class="tech-pill-shell">
-<button aria-controls="techPanelDetails" aria-expanded="false" class="tech-pill-toggle tech-collapse-btn" data-action="toggle-tech" id="techPanelToggle" title="Expandir painel técnico" type="button">
-<span aria-hidden="true" class="tech-panel-arrow">⌄</span>
-</button>
-<div class="tech-pill-title">
+<button aria-controls="techPanelDetails" aria-expanded="true" class="tech-radar-trigger tech-collapse-btn" data-action="toggle-tech" id="techPanelToggle" title="Recolher painel técnico" type="button">
+<span class="tech-pill-title">
 <span class="stats-kicker">Painel técnico</span>
 <strong>Radar da vitrine</strong>
 <small>Leitura rápida da base em tempo real</small>
-</div>
-<div aria-live="polite" class="tech-pill-status">
+</span>
+<span aria-live="polite" class="tech-pill-status">
 <span class="sync-dot" id="techSyncDot"></span>
 <span>
 <strong id="techSyncState">Online</strong>
 <small id="techStatusText">Status da conexão</small>
 </span>
-</div>
+</span>
+<span aria-hidden="true" class="tech-panel-arrow">⌄</span>
+</button>
 </div>
 <div class="tech-pill-details" id="techPanelDetails">
 <div class="tech-pill-metric">
@@ -121,7 +123,7 @@
 </div>
 </div>
 </section>
-<section class="tab-view" id="view-explorer">
+<section class="tab-view" id="view-explorer" aria-hidden="true">
 <div class="explorer-header explorer-toolbar">
 <div class="toolbar-copy">
 <span class="hero-kicker">🧭 Explorar</span>
@@ -159,7 +161,7 @@
 </div>
 </div>
 </section>
-<section class="tab-view" id="view-search">
+<section class="tab-view" id="view-search" aria-hidden="true">
 <div class="search-hero search-panel">
 <div class="toolbar-copy search-title-copy">
 <span class="hero-kicker">🔍 Buscar</span>
@@ -168,26 +170,26 @@
 </div>
 <div class="search-wrapper">
 <span class="search-icon">🔍</span>
-<input autocomplete="off" id="searchInput" placeholder="Digite o nome do produto..." type="text"/>
-<button class="search-clear" data-action="clear-search" id="searchClear">✕</button>
+<input aria-label="Buscar produto" autocomplete="off" id="searchInput" placeholder="Digite o nome do produto..." type="search"/>
+<button class="search-clear" data-action="clear-search" id="searchClear" type="button" aria-label="Limpar busca">✕</button>
 </div>
 <div class="search-results-info">Resultado atual: <span><b id="countNum">0</b> achadinhos</span></div>
 </div>
 </section>
 <section class="grid-section">
-<div class="product-grid" id="grid"></div>
+<div class="product-grid" id="grid" aria-live="polite"></div>
 </section>
-<footer id="siteFooter">
+<footer aria-label="Informações do site" id="siteFooter">
 <div class="footer-inner footer-rich">
 <div class="footer-brand-block">
 <div class="footer-logo">
 <img alt="Logo" data-fallback="hide" decoding="async" src="./src/logo.webp"/>
-<span>Vitrine de Ofertas</span>
+<span>Achadinhos Diários</span>
 </div>
-<p>Seleção independente de achadinhos, organizada para facilitar a comparação antes de acessar a oferta
-            oficial.</p>
+<p>Sua curadoria independente de achadinhos, ofertas e produtos úteis para comparar rápido antes de acessar a página oficial.</p>
 </div>
-<div aria-label="Informações de confiança" class="footer-trust-grid">
+<div aria-label="Informações úteis" class="footer-trust-grid">
+<strong class="footer-section-title">Informações úteis</strong>
 <div class="trust-item">
 <strong>🔒 Navegação segura</strong>
 <span>Links externos abrem em nova guia.</span>
@@ -202,25 +204,29 @@
 </div>
 </div>
 <div class="footer-action-block">
+<div class="footer-action-copy">
+<strong class="footer-action-title">Acompanhe outras redes</strong>
+<p class="footer-action-text">Veja novidades, listas e achadinhos selecionados nos canais oficiais.</p>
+</div>
 <a class="btn-social" href="https://linktr.ee/achadinh0s.sh0pee" rel="noopener noreferrer" target="_blank">
             Acessar redes oficiais 📱
           </a>
-<div class="footer-copy">© 2026 Vitrine de Ofertas. Curadoria com links externos oficiais.</div>
+<div class="footer-copy">© 2026 Achadinhos Diários. Todos os direitos reservados. Curadoria com links externos oficiais.</div>
 </div>
 </div>
 </footer>
 </main>
 <nav class="bottom-nav" id="bottomNav" role="tablist">
 <div class="nav-indicator" id="navIndicator"></div>
-<button class="nav-item active" data-action="switch-tab" data-tab="home" role="tab">
+<button class="nav-item active" data-action="switch-tab" data-tab="home" role="tab" type="button" aria-selected="true" aria-controls="view-home">
 <span class="icon">🏠</span>
 <span>Início</span>
 </button>
-<button class="nav-item" data-action="switch-tab" data-tab="explorer" role="tab">
+<button class="nav-item" data-action="switch-tab" data-tab="explorer" role="tab" type="button" aria-selected="false" aria-controls="view-explorer">
 <span class="icon">🧭</span>
 <span>Explorar</span>
 </button>
-<button class="nav-item" data-action="switch-tab" data-tab="search" role="tab">
+<button class="nav-item" data-action="switch-tab" data-tab="search" role="tab" type="button" aria-selected="false" aria-controls="view-search">
 <span class="icon">🔍</span>
 <span>Buscar</span>
 </button>
@@ -244,6 +250,7 @@
 <div class="modal-body">
 <div class="modal-tags" id="modalTags">
 <span class="modal-cat" id="modalCat"></span>
+<span class="modal-stock-pill" id="modalStockTag"></span>
 <span class="modal-discount-tag" id="modalDiscountTag" hidden></span>
 <span class="modal-alert-tags" id="modalAlertTags" aria-live="polite"></span>
 </div>

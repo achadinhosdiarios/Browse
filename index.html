@@ -60,10 +60,6 @@
 </div>
 </div>
 <div class="tech-pill-details" id="techPanelDetails">
-<div class="tech-panel-summary">
-<strong id="homeStatus">Aguardando produtos do banco de dados</strong>
-<small id="techCacheInfo">Sem dados carregados ainda</small>
-</div>
 <div class="tech-pill-metric">
 <small>Produtos ativos</small>
 <strong id="homeTotal">—</strong>
@@ -80,17 +76,10 @@
 <small>Item(s) | Estoque baixo</small>
 <strong id="homeHot">—</strong>
 </div>
-<div class="tech-pill-metric">
-<small>Menor preço</small>
-<strong id="techMinPrice">—</strong>
-</div>
-<div class="tech-pill-metric">
-<small>Maior preço</small>
-<strong id="techMaxPrice">—</strong>
-</div>
-<div class="tech-pill-metric">
-<small>Preço médio</small>
-<strong id="techAvgPrice">—</strong>
+<div class="tech-panel-summary tech-last-read-card" aria-live="polite">
+<span class="tech-last-label">Última leitura</span>
+<strong id="homeStatus">Aguardando produtos do banco de dados</strong>
+<small id="techCacheInfo">Sem dados carregados ainda</small>
 </div>
 </div>
 </aside>
@@ -110,11 +99,10 @@
 <div>
 <div class="home-head-top">
 <button class="btn-see-more" data-action="open-home-collection" data-kind="promotions" type="button">Ver mais</button>
-<span class="stats-kicker">Promoções</span>
+<span class="stats-kicker">Ofertas</span>
 </div>
-<h2>Descontos ativos no momento</h2>
+<h2>Achadinhos em Promoção</h2>
 </div>
-<small>Itens com Descontos ativos</small>
 </div>
 <div class="home-product-rail" id="homePromotionsRail"></div>
 </section>
@@ -122,13 +110,11 @@
 <div class="home-category-head compact-head">
 <div>
 <div class="home-head-top">
-<button class="btn-see-more" data-action="open-home-collection" data-kind="recommended" type="button">Ver
-                    mais</button>
+<button class="btn-see-more" data-action="open-home-collection" data-kind="recommended" type="button">Ver mais</button>
 <span class="stats-kicker">Recomendados</span>
 </div>
-<h2>Achadinhos em destaque</h2>
+<h2>Achadinhos em Destaque</h2>
 </div>
-<small>Selecionados por oferta</small>
 </div>
 <div class="home-product-rail" id="homeRecommendedRail"></div>
 </section>
@@ -239,7 +225,7 @@
 <span>Buscar</span>
 </button>
 </nav>
-<div class="modal-overlay" id="modal">
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
 <div class="modal-backdrop" data-action="close-modal"></div>
 <div class="modal-box" id="modalBox">
 <button aria-label="Fechar detalhes" class="modal-close" data-action="close-modal">×</button>
@@ -259,6 +245,7 @@
 <div class="modal-tags" id="modalTags">
 <span class="modal-cat" id="modalCat"></span>
 <span class="modal-discount-tag" id="modalDiscountTag" hidden></span>
+<span class="modal-alert-tags" id="modalAlertTags" aria-live="polite"></span>
 </div>
 <h2 class="modal-title" id="modalTitle"></h2>
 <div class="modal-rating" id="modalRating"></div>

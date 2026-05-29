@@ -1714,7 +1714,7 @@ function produtoCardInnerHtml(p, index, position = 0) {
   return `
       <span class="home-mini-img">
         <img src="${esc(info.img)}" alt="${info.title}" draggable="false" loading="${info.eager ? 'eager' : 'lazy'}" decoding="async" ${info.eager ? 'fetchpriority="high"' : ''} data-fallback="product">
-        ${info.isHot ? '<span class="home-mini-tag low-stock-tag">Estoque Baixo!</span>' : ''}
+        ${info.isHot ? '<span class="home-mini-tag low-stock-tag">↓Estoque⚠️</span>' : ''}
         ${info.unavailable ? '<span class="stock-preview-badge">Esgotado</span>' : discountBadge}
       </span>
       <span class="home-mini-body">

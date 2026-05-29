@@ -602,9 +602,11 @@ button.home-mini-card{border-style:solid;font:inherit}
   white-space:nowrap;
 }
 .has-low-stock .stock-pill,.home-mini-tag.low-stock-tag{
-  color:var(--urgency);
-  background:var(--urgency-light);
-  border-color:color-mix(in srgb,var(--urgency) 22%,var(--border));
+  color:#fff;
+  background:var(--urgency);
+  border-color:var(--urgency);
+  text-shadow:0 1px 4px rgba(0,0,0,.22);
+  box-shadow:0 4px 12px color-mix(in srgb,var(--urgency) 38%,transparent);
 }
 .is-unavailable .stock-pill{color:var(--text-muted);background:var(--surface-2)}
 .home-mini-price-row{

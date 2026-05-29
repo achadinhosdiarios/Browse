@@ -1039,6 +1039,9 @@ footer#siteFooter{
   box-shadow:0 24px 60px rgba(0,0,0,.24);
   transform:translateY(12px) scale(.96);
   transition:transform .26s var(--spring);
+  /* Promove a camada antes da animação de entrada, eliminando
+     o frame de reclassificação que causava o flash visual */
+  will-change:transform;
 }
 .modal-overlay.open .modal-box{transform:translateY(0) scale(1)}
 .modal-close{
@@ -1247,13 +1250,8 @@ footer#siteFooter{
   pointer-events:none;
   cursor:not-allowed;
 }
-html.modal-open,body.modal-open{overflow:hidden}
-body.modal-open{
-  position:fixed;
-  inset-inline:0;
-  top:calc(-1 * var(--modal-scroll-y,0px));
-  width:100%;
-}
+html.modal-open{overflow:hidden;overscroll-behavior:none}
+body.modal-open{overflow:hidden;scrollbar-gutter:stable}
 html.no-smooth-scroll{scroll-behavior:auto}
 
 /* 11) Skeletons e estados */
@@ -1716,13 +1714,26 @@ main{width:100%;display:flex;flex-direction:column;align-items:center}
 
 /* Card padrão unificado para produto carregado e skeleton */
 .home-mini-card,
-.catalog-card,
+.catalog-card{
+  min-height:344px;
+  grid-template-rows:auto minmax(0,1fr);
+  gap:.58rem;
+  padding:.66rem;
+  border-radius:24px;
+  /* Isola o reflow/repaint de cada card do restante da página.
+     Evita que uma mudança interna (ex: imagem carregada) relayoute
+     os vizinhos, que era uma das causas do piscar visual. */
+  contain:layout paint;
+}
 .product-skeleton{
   min-height:344px;
   grid-template-rows:auto minmax(0,1fr);
   gap:.58rem;
   padding:.66rem;
   border-radius:24px;
+  /* Skeletons usam contain:paint (não layout) para não bloquear
+     a resolução de tamanho pelo grid-auto-columns no rail horizontal */
+  contain:paint;
 }
 .home-mini-img,
 .skel-img{
@@ -2046,7 +2057,6 @@ main{width:100%;display:flex;flex-direction:column;align-items:center}
   display:grid;
   grid-template-rows:auto minmax(0,1fr);
   box-sizing:border-box;
-  /* contain:layout removed — caused width resolution failure inside grid-auto-columns tracks */
 }
 /* Ensure rail skeletons never collapse below the minimum grid track width */
 .home-product-rail > .home-rail-skeleton,
@@ -3820,26 +3830,7 @@ html.theme-switching body::after{
   }
 }
 
-/* ── 2) Modal: sem flash/piscar na página Início ──
-   O position:fixed no body causa repaint visível no mobile.
-   Substituímos por overflow:hidden apenas no <html>,
-   sem mover o body fisicamente.
-   A posição de scroll é restaurada pelo JS existente. ── */
-html.modal-open {
-  overflow: hidden;
-  /* impede scroll sem usar position:fixed no body */
-}
-body.modal-open {
-  /* remove o position:fixed que causa o flash */
-  position: static !important;
-  top: auto !important;
-  inset-inline: auto !important;
-  width: 100% !important;
-  /* mantém scroll travado via html */
-  overflow: hidden;
-  /* reserva espaço para a scrollbar para evitar layout shift */
-  scrollbar-gutter: stable;
-}
+/* ── 2) Modal: flash/piscar corrigido pela regra html.modal-open / body.modal-open acima ── */
 
 /* ── 3) Dropdown explorar: sempre dentro do viewport no mobile ──
    No mobile usamos position:fixed com coordenadas calculadas pelo JS,

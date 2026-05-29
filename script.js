@@ -455,9 +455,8 @@ function lockPageScrollForModal() {
   if (document.body.classList.contains('modal-open')) return;
   modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
   modalLastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  // Salva a posição de scroll para restaurar depois, mas NÃO usa position:fixed no body
-  // (evita o flash/piscar visual causado pela mudança de layout no mobile).
-  document.body.style.setProperty('--modal-scroll-y', `${modalScrollY}px`);
+  // Apenas overflow:hidden via classe — sem position:fixed no body,
+  // o que eliminava o flash/piscar visual ao abrir o modal.
   document.documentElement.classList.add('modal-open');
   document.body.classList.add('modal-open');
 }
@@ -468,7 +467,6 @@ function unlockPageScrollForModal() {
   document.documentElement.classList.add('no-smooth-scroll');
   document.documentElement.classList.remove('modal-open');
   document.body.classList.remove('modal-open');
-  document.body.style.removeProperty('--modal-scroll-y');
   // Restaura a posição de scroll: como não movemos o body, ela pode
   // não ter mudado, mas garantimos a posição correta em qualquer caso.
   if (restoreY > 0) {
@@ -820,7 +818,14 @@ function renderGrid(lista, forceRender = false) {
     return;
   }
 
-  grid.innerHTML = lista.map((p, i) => cardHtml(p, i)).join('');
+  const fragment = document.createDocumentFragment();
+  const tmp = document.createElement('div');
+  lista.forEach((p, i) => {
+    tmp.innerHTML = cardHtml(p, i);
+    const node = tmp.firstElementChild;
+    if (node) fragment.appendChild(node);
+  });
+  grid.replaceChildren(fragment);
 }
 
 function isCompactViewport() {
@@ -1850,10 +1855,14 @@ function openModal(i) {
     }
   }
 
-  const modal = document.getElementById('modal');
-  modal?.classList.add('open');
-  modal?.setAttribute('aria-hidden', 'false');
   lockPageScrollForModal();
+  // Aplica a classe open no próximo frame — garante que o overflow:hidden
+  // do scroll-lock já está pintado antes da animação de entrada do modal,
+  // eliminando o flash visual em dispositivos lentos.
+  requestAnimationFrame(() => {
+    modal?.classList.add('open');
+    modal?.setAttribute('aria-hidden', 'false');
+  });
 }
 
 function bindStaticEvents() {

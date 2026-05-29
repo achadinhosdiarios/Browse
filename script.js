@@ -9,11 +9,53 @@
 })();
 
 function toggleTheme() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const root = document.documentElement;
+  const toggle = document.querySelector('.theme-toggle');
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  const current = isDark ? 'dark' : 'light';
   const next = isDark ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
+  const animate = !prefersReducedMotion();
+
+  window.clearTimeout(toggleTheme.resetTimer);
+  window.clearTimeout(toggleTheme.iconTimer);
+
+  if (toggle) {
+    toggle.classList.remove('switching', 'to-dark', 'to-light', 'from-dark', 'from-light');
+    toggle.dataset.themeState = current;
+    toggle.dataset.themeTarget = next;
+  }
+
+  if (animate) {
+    root.classList.add('theme-switching');
+    toggle?.classList.add('switching', `from-${current}`, `to-${next}`);
+    toggle?.setAttribute('aria-busy', 'true');
+
+    // Garante que o navegador registre a posição inicial do switch
+    // antes de alterar o tema. Sem isso, a transição pode ser pulada
+    // em alguns navegadores por causa do batching de estilos.
+    if (toggle) void toggle.offsetWidth;
+  }
+
+  root.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
-  updateThemeToggle();
+  updateThemeToggle({ deferIcon: animate });
+
+  if (animate) {
+    toggleTheme.iconTimer = window.setTimeout(() => {
+      updateThemeToggle({ iconOnly: true });
+    }, 280);
+  }
+
+  toggleTheme.resetTimer = window.setTimeout(() => {
+    root.classList.remove('theme-switching');
+    if (toggle) {
+      toggle.classList.remove('switching', 'to-dark', 'to-light', 'from-dark', 'from-light');
+      toggle.dataset.themeState = next;
+      delete toggle.dataset.themeTarget;
+      toggle.removeAttribute('aria-busy');
+    }
+    updateThemeToggle();
+  }, 620);
 }
 
 let currentTab = 'home';
@@ -64,7 +106,12 @@ let homeListMode = '';
 let currentHash = '', lastRenderKey = '', lastHomeRenderKey = '', filtroTimer = null;
 let isLoadingProdutos = false, refreshResetTimer = null;
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    setTechnicalPanelState?.(false);
+  }
+});
 
 async function carregar(forceNetwork = false) {
   if (isLoadingProdutos) {
@@ -551,6 +598,7 @@ document.addEventListener('click', e => {
 });
 
 window.addEventListener('resize', repositionOpenDropdowns, { passive: true });
+window.addEventListener('resize', () => setTechnicalPanelState?.(isDesktopTechnicalPanelLayout?.()), { passive: true });
 window.addEventListener('scroll', repositionOpenDropdowns, { passive: true });
 
 document.addEventListener('dragstart', e => {
@@ -871,8 +919,10 @@ function setRefreshState(state, text = '') {
 
   window.clearTimeout(refreshResetTimer);
   btn.classList.toggle('loading', state === 'loading');
+  btn.classList.toggle('is-loading', state === 'loading');
   btn.classList.toggle('is-done', state === 'done');
   btn.classList.toggle('is-error', state === 'error');
+  btn.dataset.refreshState = state || 'idle';
   btn.disabled = state === 'loading';
   btn.setAttribute('aria-busy', String(state === 'loading'));
 
@@ -1292,7 +1342,7 @@ function updateHomeStats(timestamp = Date.now()) {
   setText('homeStatus', total ? `Hoje às ${hora}` : 'Aguardando produtos do banco de dados');
   setText('techCacheInfo', total ? 'Cache local ativo · vitrine sincronizada' : 'Sem dados carregados ainda');
   setText('techSyncState', total ? 'Online' : 'Standby');
-  setText('techStatusText', total ? 'Base sincronizada' : 'Aguardando dados');
+  setText('techStatusText', total ? 'Site sincronizado' : 'Aguardando dados');
   setText('techLastRead', total ? hora : '—');
 
   const dot = document.getElementById('techSyncDot');
@@ -1311,15 +1361,23 @@ function hydrateTechPanelIcon() {
   if (arrow && !arrow.querySelector('svg')) arrow.innerHTML = TECH_PANEL_CHEVRON_SVG;
 }
 
+function isDesktopTechnicalPanelLayout() {
+  return window.matchMedia('(min-width: 1180px)').matches;
+}
+
 function setTechnicalPanelState(expanded) {
   const panel = document.getElementById('technicalPanel');
   const toggle = document.getElementById('techPanelToggle');
+  const details = document.getElementById('techPanelDetails');
   if (!panel) return;
-  panel.classList.toggle('is-collapsed', !expanded);
+  const finalExpanded = isDesktopTechnicalPanelLayout() || Boolean(expanded);
+  panel.classList.toggle('is-collapsed', !finalExpanded);
+  panel.classList.toggle('is-open', finalExpanded);
   if (toggle) {
-    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    toggle.title = expanded ? 'Recolher painel técnico' : 'Expandir painel técnico';
+    toggle.setAttribute('aria-expanded', finalExpanded ? 'true' : 'false');
+    toggle.title = finalExpanded ? 'Painel técnico fixo no desktop' : 'Expandir painel técnico';
   }
+  if (details) details.setAttribute('aria-hidden', finalExpanded ? 'false' : 'true');
   hydrateTechPanelIcon();
 }
 
@@ -1330,17 +1388,41 @@ function toggleTechnicalPanel(event) {
     event.preventDefault();
     event.stopPropagation();
   }
+  if (isDesktopTechnicalPanelLayout()) {
+    setTechnicalPanelState(true);
+    return;
+  }
   setTechnicalPanelState(panel.classList.contains('is-collapsed'));
 }
 
-function updateThemeToggle() {
+function maybeCloseTechnicalPanel(event) {
+  if (isDesktopTechnicalPanelLayout()) return;
+  const panel = document.getElementById('technicalPanel');
+  if (!panel || panel.classList.contains('is-collapsed')) return;
+  if (event?.target && panel.contains(event.target)) return;
+  setTechnicalPanelState(false);
+}
+
+function updateThemeToggle(options = {}) {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const toggle = document.querySelector('.theme-toggle');
   const icon = document.getElementById('themeIcon');
   const name = document.getElementById('themeName');
   const desc = document.getElementById('themeDesc');
-  if (icon) icon.textContent = isDark ? '🌙' : '☀️';
+  const nextIcon = isDark ? '🌙' : '☀️';
+
+  if (icon && !options.deferIcon) icon.textContent = nextIcon;
+  if (options.iconOnly) return;
+
   if (name) name.textContent = isDark ? 'Escuro' : 'Claro';
   if (desc) desc.textContent = isDark ? 'Conforto noturno' : 'Leitura limpa';
+  if (toggle) {
+    toggle.setAttribute('aria-pressed', String(isDark));
+    if (!toggle.classList.contains('switching')) {
+      toggle.dataset.themeState = isDark ? 'dark' : 'light';
+      delete toggle.dataset.themeTarget;
+    }
+  }
 }
 
 function productStockInfo(p) {
@@ -1689,6 +1771,7 @@ function bindStaticEvents() {
     const actionEl = event.target.closest('[data-action]');
     if (actionEl) {
       const action = actionEl.dataset.action;
+      if (action !== 'toggle-tech') maybeCloseTechnicalPanel(event);
       if (action !== 'toggle-zoom') event.preventDefault();
 
       switch (action) {
@@ -1730,6 +1813,8 @@ function bindStaticEvents() {
           return;
       }
     }
+
+    maybeCloseTechnicalPanel(event);
 
     const card = event.target.closest('[data-open-index]');
     if (card) {

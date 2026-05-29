@@ -21,7 +21,6 @@
 <img alt="Logo Achadinhos Diários" class="logo-img" data-fallback="hide" decoding="async" fetchpriority="high" src="./src/logo.webp"/>
 <span class="logo-meta">
 <strong class="logo-text">Achadinhos <em>Diários</em></strong>
-<small>Curadoria de ofertas</small>
 </span>
 </a>
 <button aria-label="Alternar tema" class="theme-toggle" data-action="theme" title="Alternar tema">
@@ -35,56 +34,15 @@
 </header>
 <main>
 <section class="tab-view active" id="view-home" aria-hidden="false">
+<div class="home-layout-frame">
 <div class="hero-panel">
 <div class="home-highlight">
 <div class="capsule-text-wrap hero-message-card">
 <span class="hero-kicker">✨ Atualizado diariamente</span>
-<h1>Sua curadoria de <br/><span>achados imperdíveis</span></h1>
-<p>Ofertas organizadas para compra rápida, com destaque para preço, categoria, avaliações e novidades
-              verificadas direto do banco.</p>
+<h1>Ofertas selecionadas para <br/><span>quem não quer perder tempo</span></h1>
+<p>Do preço à avaliação: filtramos as melhores novidades do mercado para você encontrar o que precisa em um só lugar. Compra rápida, segura e direto ao ponto.</p>
 </div>
-<aside aria-label="Painel técnico dos achadinhos" class="home-stats-card technical-panel tech-pill-panel" id="technicalPanel">
-<div class="tech-pill-shell">
-<button aria-controls="techPanelDetails" aria-expanded="true" class="tech-radar-trigger tech-collapse-btn" data-action="toggle-tech" id="techPanelToggle" title="Recolher painel técnico" type="button">
-<span class="tech-pill-title">
-<span class="stats-kicker">Painel técnico</span>
-<strong>Radar da vitrine</strong>
-<small>Leitura rápida da base em tempo real</small>
-</span>
-<span aria-live="polite" class="tech-pill-status">
-<span class="sync-dot" id="techSyncDot"></span>
-<span>
-<strong id="techSyncState">Online</strong>
-<small id="techStatusText">Status da conexão</small>
-</span>
-</span>
-<span aria-hidden="true" class="tech-panel-arrow">⌄</span>
-</button>
-</div>
-<div class="tech-pill-details" id="techPanelDetails">
-<div class="tech-pill-metric">
-<small>Produtos ativos</small>
-<strong id="homeTotal">—</strong>
-</div>
-<div class="tech-pill-metric">
-<small>Categorias</small>
-<strong id="homeCats">—</strong>
-</div>
-<div class="tech-pill-metric">
-<small>Item(s) | Queda no Preço</small>
-<strong id="homeDrops">—</strong>
-</div>
-<div class="tech-pill-metric">
-<small>Item(s) | Estoque baixo</small>
-<strong id="homeHot">—</strong>
-</div>
-<div class="tech-panel-summary tech-last-read-card" aria-live="polite">
-<span class="tech-last-label">Última leitura</span>
-<strong id="homeStatus">Aguardando produtos do banco de dados</strong>
-<small id="techCacheInfo">Sem dados carregados ainda</small>
-</div>
-</div>
-</aside>
+
 </div>
 <div class="home-refresh-panel">
 <button class="btn-refresh" data-action="refresh" id="refreshBtn" type="button">
@@ -122,13 +80,57 @@
 </section>
 </div>
 </div>
+
+<aside aria-label="Painel técnico dos achadinhos" class="home-stats-card technical-panel tech-pill-panel" id="technicalPanel">
+<div class="tech-pill-shell">
+<button aria-controls="techPanelDetails" aria-expanded="false" class="tech-radar-trigger tech-collapse-btn" data-action="toggle-tech" id="techPanelToggle" title="Expandir painel técnico" type="button">
+<span class="tech-pill-title">
+<span class="stats-kicker">Painel técnico</span>
+<strong>Informações da plataforma</strong>
+<small>Leitura rápida em tempo real</small>
+</span>
+<span aria-live="polite" class="tech-pill-status">
+<span class="sync-dot" id="techSyncDot"></span>
+<span>
+<strong id="techSyncState">Online</strong>
+<small id="techStatusText">Status da conexão</small>
+</span>
+</span>
+<span aria-hidden="true" class="tech-panel-arrow">⌄</span>
+</button>
+</div>
+<div aria-hidden="true" class="tech-pill-details" id="techPanelDetails">
+<div class="tech-pill-metric">
+<small>Produtos em estoque</small>
+<strong id="homeTotal">—</strong>
+</div>
+<div class="tech-pill-metric">
+<small>Categorias disponíveis</small>
+<strong id="homeCats">—</strong>
+</div>
+<div class="tech-pill-metric">
+<small>Produtos ⬇ R$</small>
+<strong id="homeDrops">—</strong>
+</div>
+<div class="tech-pill-metric">
+<small>Produtos em estoque baixo</small>
+<strong id="homeHot">—</strong>
+</div>
+<div class="tech-panel-summary tech-last-read-card" aria-live="polite">
+<span class="tech-last-label">Última leitura</span>
+<strong id="homeStatus">Aguardando produtos do banco de dados</strong>
+<small id="techCacheInfo">Sem dados carregados ainda</small>
+</div>
+</div>
+</aside>
+</div>
 </section>
 <section class="tab-view" id="view-explorer" aria-hidden="true">
 <div class="explorer-header explorer-toolbar">
 <div class="toolbar-copy">
 <span class="hero-kicker">🧭 Explorar</span>
 <h2>Filtre os achadinhos</h2>
-<p>Escolha uma categoria e ordene sem abrir menus nativos do navegador.</p>
+<p>Escolha uma categoria e ordene sem esforço algum!</p>
 </div>
 <div aria-label="Filtros de exploração" class="select-row">
 <div class="custom-select" id="categorySelect">
@@ -166,7 +168,7 @@
 <div class="toolbar-copy search-title-copy">
 <span class="hero-kicker">🔍 Buscar</span>
 <h2>Encontre uma oferta específica</h2>
-<p>Nenhum produto aparece até você digitar algo, deixando a busca mais limpa e rápida.</p>
+<p>Comece a digitar para ver os resultados.</p>
 </div>
 <div class="search-wrapper">
 <span class="search-icon">🔍</span>
@@ -186,32 +188,32 @@
 <img alt="Logo" data-fallback="hide" decoding="async" src="./src/logo.webp"/>
 <span>Achadinhos Diários</span>
 </div>
-<p>Sua curadoria independente de achadinhos, ofertas e produtos úteis para comparar rápido antes de acessar a página oficial.</p>
+<p>Sua curadoria independente de achados e ofertas. Compare rápido, escolha com segurança e acesse direto a página oficial.</p>
+<div class="footer-copy">© 2026 Achadinhos Diários. Todos os direitos reservados.</div>
 </div>
 <div aria-label="Informações úteis" class="footer-trust-grid">
 <strong class="footer-section-title">Informações úteis</strong>
 <div class="trust-item">
 <strong>🔒 Navegação segura</strong>
-<span>Links externos abrem em nova guia.</span>
+<span>Links externos abrem sempre em uma nova guia para sua tranquilidade.</span>
 </div>
 <div class="trust-item">
 <strong>🛍️ Ofertas selecionadas</strong>
-<span>Produtos organizados por categoria e preço.</span>
+<span>Produtos organizados por categoria, preço e avaliação para facilitar sua decisão.</span>
 </div>
 <div class="trust-item">
 <strong>⚡ Atualização rápida</strong>
-<span>Consulta otimizada ao banco de dados.</span>
+<span>Consultas otimizadas e em tempo real para você não perder nenhuma oportunidade.</span>
 </div>
 </div>
 <div class="footer-action-block">
 <div class="footer-action-copy">
-<strong class="footer-action-title">Acompanhe outras redes</strong>
-<p class="footer-action-text">Veja novidades, listas e achadinhos selecionados nos canais oficiais.</p>
+<strong class="footer-action-title">Acompanhe nossas redes</strong>
+<p class="footer-action-text">Fique por dentro das listas, novidades e achadinhos em primeira mão nos nossos canais oficiais.</p>
 </div>
 <a class="btn-social" href="https://linktr.ee/achadinh0s.sh0pee" rel="noopener noreferrer" target="_blank">
-            Acessar redes oficiais 📱
-          </a>
-<div class="footer-copy">© 2026 Achadinhos Diários. Todos os direitos reservados. Curadoria com links externos oficiais.</div>
+Acesse nossas redes oficiais 📱
+</a>
 </div>
 </div>
 </footer>

@@ -455,19 +455,25 @@ function lockPageScrollForModal() {
   if (document.body.classList.contains('modal-open')) return;
   modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
   modalLastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  // Salva a posição de scroll para restaurar depois, mas NÃO usa position:fixed no body
+  // (evita o flash/piscar visual causado pela mudança de layout no mobile).
+  document.body.style.setProperty('--modal-scroll-y', `${modalScrollY}px`);
   document.documentElement.classList.add('modal-open');
   document.body.classList.add('modal-open');
-  document.body.style.setProperty('--modal-scroll-y', `${modalScrollY}px`);
 }
 
 function unlockPageScrollForModal() {
   if (!document.body.classList.contains('modal-open')) return;
-  const restoreY = modalScrollY || window.scrollY || document.documentElement.scrollTop || 0;
+  const restoreY = modalScrollY || 0;
   document.documentElement.classList.add('no-smooth-scroll');
   document.documentElement.classList.remove('modal-open');
   document.body.classList.remove('modal-open');
   document.body.style.removeProperty('--modal-scroll-y');
-  restoreScrollInstantly(restoreY);
+  // Restaura a posição de scroll: como não movemos o body, ela pode
+  // não ter mudado, mas garantimos a posição correta em qualquer caso.
+  if (restoreY > 0) {
+    restoreScrollInstantly(restoreY);
+  }
   requestAnimationFrame(() => {
     document.documentElement.classList.remove('no-smooth-scroll');
     if (modalLastFocused && document.contains(modalLastFocused)) {
@@ -516,6 +522,7 @@ const SPECIAL_CATEGORY_FILTERS = {
 };
 
 let modalZoomed = false;
+const dropdownCloseTimers = new WeakMap();
 
 function getOpenDropdowns() {
   return Array.from(document.querySelectorAll('.custom-select.open'));
@@ -525,13 +532,65 @@ function syncFiltersOpenState() {
   document.body.classList.toggle('filters-open', getOpenDropdowns().length > 0);
 }
 
+function clearDropdownCloseTimer(el) {
+  const timer = dropdownCloseTimers.get(el);
+  if (timer) {
+    window.clearTimeout(timer);
+    dropdownCloseTimers.delete(el);
+  }
+}
+
+function resetDropdownTransientStyles(el) {
+  if (!el) return;
+  clearDropdownCloseTimer(el);
+  el.classList.remove('is-closing');
+  const menu = el.querySelector('.select-menu');
+  if (!menu) return;
+  menu.style.removeProperty('visibility');
+  menu.style.removeProperty('opacity');
+  menu.style.removeProperty('pointer-events');
+  menu.style.removeProperty('transition');
+}
+
+function closeDropdownElement(el) {
+  if (!el || !el.classList.contains('open')) return;
+
+  clearDropdownCloseTimer(el);
+  const trigger = el.querySelector('.select-trigger');
+  const menu = el.querySelector('.select-menu');
+
+  if (menu) {
+    // O fechamento precisa ser instantaneamente invisível. Sem isso, a
+    // transição de opacity pode renderizar o menu por um frame depois que
+    // o body perde .filters-open, fazendo o overlay piscar fora do lugar.
+    const rect = menu.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      menu.style.top = `${Math.round(rect.top)}px`;
+      menu.style.left = `${Math.round(rect.left)}px`;
+      menu.style.width = `${Math.round(rect.width)}px`;
+      menu.style.maxHeight = `${Math.round(rect.height)}px`;
+    }
+    menu.style.visibility = 'hidden';
+    menu.style.opacity = '0';
+    menu.style.pointerEvents = 'none';
+    menu.style.transition = 'none';
+  }
+
+  el.classList.add('is-closing');
+  el.classList.remove('open', 'drop-up');
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
+
+  const timer = window.setTimeout(() => {
+    if (!el.classList.contains('open')) {
+      resetDropdownTransientStyles(el);
+    }
+  }, 120);
+  dropdownCloseTimers.set(el, timer);
+}
+
 function closeAllDropdowns(exceptId = '') {
   document.querySelectorAll('.custom-select.open').forEach(el => {
-    if (el.id !== exceptId) {
-      el.classList.remove('open', 'drop-up');
-      const trigger = el.querySelector('.select-trigger');
-      if (trigger) trigger.setAttribute('aria-expanded', 'false');
-    }
+    if (el.id !== exceptId) closeDropdownElement(el);
   });
   syncFiltersOpenState();
 }
@@ -542,28 +601,57 @@ function positionDropdownMenu(el) {
   if (!trigger || !menu) return;
 
   const rect = trigger.getBoundingClientRect();
-  const viewW = window.innerWidth || document.documentElement.clientWidth || 0;
-  const viewH = window.innerHeight || document.documentElement.clientHeight || 0;
-  const gutter = 10;
-  const preferredWidth = Math.max(rect.width, Math.min(340, viewW - gutter * 2));
-  const menuWidth = Math.min(preferredWidth, viewW - gutter * 2);
+  const viewport = window.visualViewport;
+  const viewLeft = viewport?.offsetLeft || 0;
+  const viewTop = viewport?.offsetTop || 0;
+  const viewW = Math.floor(viewport?.width || document.documentElement.clientWidth || window.innerWidth || 0);
+  const viewH = Math.floor(viewport?.height || document.documentElement.clientHeight || window.innerHeight || 0);
+  const isMobile = viewW <= 820;
+  const gutter = isMobile ? 12 : 10;
+  const gap = isMobile ? 7 : 8;
+  const minMenuWidth = Math.min(rect.width, viewW - gutter * 2);
+  const preferredWidth = Math.max(minMenuWidth, Math.min(isMobile ? viewW - gutter * 2 : 340, viewW - gutter * 2));
+  const menuWidth = Math.max(160, Math.min(preferredWidth, viewW - gutter * 2));
 
-  menu.style.width = Math.round(menuWidth) + 'px';
-  const naturalHeight = Math.min(menu.scrollHeight || 280, Math.floor(viewH * 0.58));
-  const spaceBelow = viewH - rect.bottom - gutter;
-  const spaceAbove = rect.top - gutter;
-  const openUp = spaceBelow < Math.min(naturalHeight, 180) && spaceAbove > spaceBelow;
-  const maxHeight = Math.max(140, Math.min(naturalHeight, openUp ? spaceAbove : spaceBelow));
+  menu.style.width = `${Math.round(menuWidth)}px`;
+  menu.style.maxHeight = '';
+
+  const measuredHeight = Math.max(menu.scrollHeight || 0, menu.offsetHeight || 0, 180);
+  const heightLimit = Math.floor(viewH * (isMobile ? 0.52 : 0.58));
+  const naturalHeight = Math.min(measuredHeight, heightLimit);
+  const viewportTop = viewTop + gutter;
+  const viewportBottom = viewTop + viewH - gutter;
+  const spaceBelow = viewportBottom - rect.bottom - gap;
+  const spaceAbove = rect.top - viewportTop - gap;
+  const openUp = spaceBelow < Math.min(naturalHeight, 190) && spaceAbove > spaceBelow;
+  const availableHeight = Math.max(isMobile ? 132 : 150, openUp ? spaceAbove : spaceBelow);
+  const maxHeight = Math.min(naturalHeight, availableHeight);
   const top = openUp
-    ? Math.max(gutter, rect.top - maxHeight - 8)
-    : Math.min(viewH - gutter - maxHeight, rect.bottom + 8);
-  const left = Math.max(gutter, Math.min(rect.left, viewW - gutter - menuWidth));
+    ? Math.max(viewportTop, rect.top - maxHeight - gap)
+    : Math.min(viewportBottom - maxHeight, rect.bottom + gap);
+  const left = Math.max(viewLeft + gutter, Math.min(rect.left, viewLeft + viewW - gutter - menuWidth));
 
   el.classList.toggle('drop-up', openUp);
-  el.style.setProperty('--menu-top', Math.round(top) + 'px');
-  el.style.setProperty('--menu-left', Math.round(left) + 'px');
-  el.style.setProperty('--menu-width', Math.round(menuWidth) + 'px');
-  el.style.setProperty('--menu-max-height', Math.round(maxHeight) + 'px');
+
+  const values = {
+    '--menu-top': `${Math.round(top)}px`,
+    '--menu-left': `${Math.round(left)}px`,
+    '--menu-width': `${Math.round(menuWidth)}px`,
+    '--menu-max-height': `${Math.round(maxHeight)}px`
+  };
+
+  Object.entries(values).forEach(([prop, value]) => {
+    el.style.setProperty(prop, value);
+    menu.style.setProperty(prop, value);
+  });
+
+  menu.style.position = 'fixed';
+  menu.style.top = values['--menu-top'];
+  menu.style.left = values['--menu-left'];
+  menu.style.width = values['--menu-width'];
+  menu.style.maxHeight = values['--menu-max-height'];
+  menu.style.right = 'auto';
+  menu.style.bottom = 'auto';
 }
 
 function repositionOpenDropdowns() {
@@ -573,24 +661,30 @@ function repositionOpenDropdowns() {
 function toggleDropdown(id) {
   const el = document.getElementById(id);
   if (!el) return;
+  resetDropdownTransientStyles(el);
   const willOpen = !el.classList.contains('open');
   closeAllDropdowns(id);
 
-  el.classList.toggle('open', willOpen);
-  const trigger = el.querySelector('.select-trigger');
-  if (trigger) trigger.setAttribute('aria-expanded', String(willOpen));
-
-  if (willOpen) {
-    positionDropdownMenu(el);
-    window.requestAnimationFrame(() => {
-      positionDropdownMenu(el);
-      if (!prefersReducedMotion()) {
-        el.querySelector('.select-option.active')?.scrollIntoView({ block: 'nearest' });
-      }
-    });
+  if (!willOpen) {
+    closeDropdownElement(el);
+    syncFiltersOpenState();
+    return;
   }
 
+  resetDropdownTransientStyles(el);
+  el.classList.add('open');
+  const trigger = el.querySelector('.select-trigger');
+  if (trigger) trigger.setAttribute('aria-expanded', 'true');
   syncFiltersOpenState();
+
+  positionDropdownMenu(el);
+  window.requestAnimationFrame(() => {
+    positionDropdownMenu(el);
+    window.requestAnimationFrame(() => positionDropdownMenu(el));
+    if (!prefersReducedMotion()) {
+      el.querySelector('.select-option.active')?.scrollIntoView({ block: 'nearest' });
+    }
+  });
 }
 
 document.addEventListener('click', e => {
@@ -600,6 +694,8 @@ document.addEventListener('click', e => {
 window.addEventListener('resize', repositionOpenDropdowns, { passive: true });
 window.addEventListener('resize', () => setTechnicalPanelState?.(isDesktopTechnicalPanelLayout?.()), { passive: true });
 window.addEventListener('scroll', repositionOpenDropdowns, { passive: true });
+window.visualViewport?.addEventListener('resize', repositionOpenDropdowns, { passive: true });
+window.visualViewport?.addEventListener('scroll', repositionOpenDropdowns, { passive: true });
 
 document.addEventListener('dragstart', e => {
   if (e.target && e.target.tagName === 'IMG') e.preventDefault();
